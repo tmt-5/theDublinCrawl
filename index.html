@@ -32,7 +32,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);}
 }
 .screen{
   position:absolute;inset:0;
-  display:flex;flex-direction:column;align-items:center;
+  align-items:center;
   opacity:0;pointer-events:none;
   transition:opacity 0.45s ease;
   overflow:hidden;
@@ -67,7 +67,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);}
 /* ===== WELCOME SCREEN ===== */
 #screen-welcome{
   background:linear-gradient(180deg,var(--sky) 0%,var(--sky2) 40%,var(--green-deep) 100%);
-  justify-content:center;gap:0;
+  justify-content:center;gap:0;display:flex;
 }
 #rain-canvas{position:absolute;inset:0;pointer-events:none;opacity:0.7;}
 .welcome-content{
@@ -75,6 +75,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);}
   display:flex;flex-direction:column;align-items:center;
   gap:20px;padding:30px 24px;text-align:center;
   max-width:400px;width:100%;
+  margin:auto;
 }
 .pint-logo{
   width:80px;height:80px;
@@ -106,7 +107,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);}
 /* ===== ADVENTURER SCREEN ===== */
 #screen-adventurer{
   background:linear-gradient(180deg,var(--wood-dark) 0%,var(--green-deep) 100%);
-  overflow-y:auto;
+  overflow-y:auto;display: flex;justify-content:center;
 }
 .adventurer-inner{
   display:flex;flex-direction:column;align-items:center;
@@ -169,26 +170,33 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);}
   flex-direction:column;
   align-items:stretch;
 }
+#screen-world-map::before{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:linear-gradient(180deg,var(--sky) 0%,#0f1520 30%,#0d1a0a 65%,#0a1505 100%);
+  pointer-events:none;
+  z-index:0;
+}
 #map-header{
   position:sticky;top:0;z-index:10;
   background:linear-gradient(180deg,rgba(13,13,26,0.98) 0%,rgba(13,13,26,0.85) 100%);
-  padding:10px 16px;
+  padding:16px 16px 10px 16px;
   display:flex;align-items:center;justify-content:space-between;
   border-bottom:2px solid var(--green-deep);
   backdrop-filter:blur(4px);
 }
 .map-player-info{display:flex;align-items:center;gap:10px;}
 .map-mini-avatar{image-rendering:pixelated;display:block;}
-.map-player-name{font-family:var(--fn-h);font-size:7px;color:var(--gold);}
-.map-progress{font-family:var(--fn-b);font-size:16px;color:var(--cream-dark);}
-.map-next-btn{font-size:7px;padding:10px 12px;}
+.map-player-name{font-family:var(--fn-h);font-size:10px;color:var(--gold);}
+.map-progress{font-family:var(--fn-b);font-size:20px;color:var(--cream-dark);}
+.map-next-btn{font-size:8px;padding:10px 12px;}
 #map-inner{
-  position:relative;width:100%;height:2500px;
+  position:relative;width:100%;height:2190px;
   background:
-    radial-gradient(ellipse 80% 40% at 50% 75%,rgba(45,106,79,0.15) 0%,transparent 70%),
-    repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(255,255,255,0.02) 31px,rgba(255,255,255,0.02) 32px),
-    repeating-linear-gradient(90deg,transparent,transparent 31px,rgba(255,255,255,0.02) 31px,rgba(255,255,255,0.02) 32px),
-    linear-gradient(180deg,var(--sky) 0%,#0f1520 30%,#0d1a0a 70%,#0a1505 100%);
+    repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(255,255,255,0.04) 31px,rgba(255,255,255,0.04) 32px),
+    repeating-linear-gradient(90deg,transparent,transparent 31px,rgba(255,255,255,0.04) 31px,rgba(255,255,255,0.04) 32px);
+  z-index:1;
 }
 #map-path-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
 .map-node{
@@ -210,7 +218,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);}
   box-shadow:3px 3px 0 #000;
 }
 .node-label{
-  font-family:var(--fn-h);font-size:5px;
+  font-family:var(--fn-h);font-size:10px;
   color:var(--cream-dark);
   text-align:center;
   max-width:80px;
@@ -541,9 +549,27 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);}
 }
 .report-restart{width:100%;}
 
+/* ===== DRUNKENNESS METER ===== */
+#drunk-meter{display:flex;align-items:center;gap:6px;margin-top:4px;}
+#drunk-label{font-family:var(--fn-h);font-size:7px;color:var(--amber);min-width:52px;}
+#drunk-bar{display:flex;gap:2px;}
+.drunk-seg{width:8px;height:10px;border:1px solid #444;background:#1a1a1a;transition:background 0.3s,border-color 0.3s;}
+.drunk-seg.filled-low{background:#3d8b5e;border-color:#2d6a4f;}
+.drunk-seg.filled-mid{background:#f4a261;border-color:#e76f51;}
+.drunk-seg.filled-high{background:#e63946;border-color:#c1121f;}
+@keyframes drunk-wobble-mild{
+  0%,100%{transform:translate(-50%,-100%) rotate(-2deg);}
+  50%{transform:translate(-50%,-100%) rotate(2deg);}
+}
+@keyframes drunk-wobble-heavy{
+  0%,100%{transform:translate(-50%,-100%) rotate(-5deg) translateX(-3px);}
+  25%{transform:translate(-50%,-100%) rotate(4deg) translateX(4px);}
+  75%{transform:translate(-50%,-100%) rotate(-3deg) translateX(-2px);}
+}
+
 /* ===== TRANSITIONS ===== */
 @keyframes screen-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-.screen-enter{animation:screen-in 0.4s ease both;}
+.screen-enter{animation:screen-in 0.7s ease both;}
 
 /* Scrollbar styling */
 ::-webkit-scrollbar{width:6px;}
@@ -598,6 +624,10 @@ input{-webkit-appearance:none;}
         <div>
           <div class="map-player-name" id="map-player-name">ADVENTURER</div>
           <div class="map-progress" id="map-progress">0 / 10 pubs</div>
+          <div id="drunk-meter">
+            <span id="drunk-label">SOBER</span>
+            <div id="drunk-bar"></div>
+          </div>
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
@@ -612,10 +642,10 @@ input{-webkit-appearance:none;}
         <canvas id="map-av-canvas" width="10" height="16" style="width:40px;height:64px;"></canvas>
         <div class="av-label" id="map-av-label"></div>
       </div>
-      <div class="map-lamppost" style="left:15%;top:2200px;--flicker-dur:3.1s;"></div>
-      <div class="map-lamppost" style="left:72%;top:1650px;--flicker-dur:2.7s;"></div>
-      <div class="map-lamppost" style="left:40%;top:1100px;--flicker-dur:3.5s;"></div>
-      <div class="map-lamppost" style="left:80%;top:600px;--flicker-dur:2.4s;"></div>
+      <div class="map-lamppost" style="left:27%;top:1930px;--flicker-dur:3.1s;"></div>
+      <div class="map-lamppost" style="left:53%;top:1477px;--flicker-dur:2.7s;"></div>
+      <div class="map-lamppost" style="left:30%;top:910px;--flicker-dur:3.5s;"></div>
+      <div class="map-lamppost" style="left:60%;top:340px;--flicker-dur:2.4s;"></div>
     </div>
   </div>
 
@@ -651,53 +681,53 @@ input{-webkit-appearance:none;}
 
 // ===== PUB DATA =====
 const PUBS = [
-  {id:0,name:"THE COBBLESTONE",sub:"Smithfield",tagline:"Where the music never dies and neither does the craic",icon:"🎻",
+  {id:0,name:"Smithfield",sub:"THE COBBLESTONE",tagline:"Where the music never dies and neither does the craic",icon:"🎻",
    history:"Built in the 1840s, The Cobblestone is one of Dublin's most beloved traditional Irish music pubs. Located in Smithfield, it survived the Celtic Tiger redevelopment era and became a cultural battleground in 2021 when a hotel development threatened its future. The community rallied, trad sessions raged in protest, and the pub endured. Its backroom sessions run nightly without amplification — the way it was always meant to be.",
    funFact:"The Cobblestone has never had a televised sporting event. Landlord Tom Mulligan famously said he'd sooner drain every pint in the cellar than install a screen. The trad musicians regard this as sacred law.",
    illus:{bg:'#1a2a1a',walls:'#e8e0d0',door:'#2244aa',roof:'#3d2b1f',accent:'#4a7a3a'}},
-  {id:1,name:"Smithfield",sub:"BONOBO",tagline:"The cocktail alchemist hiding in plain sight",icon:"🍸",
+  {id:1,name:"Smithfield",sub:"BONOBO",tagline:"The cocktail alchemist hiding in plain sight",icon:"🍕",
    history:"Named not for U2's frontman but for the great ape — a creature known for its peaceful, pleasure-seeking nature. Bonobo opened as part of Smithfield's quiet reinvention, sitting in deliberate contrast to its traditional neighbour The Cobblestone: craft cocktails, curated spirits, and an interior that mixes brutalist concrete with warm amber lighting. A new Dublin talking to an old Dublin across the cobblestones.",
    funFact:"Bonobo's head bartender keeps a notebook of every unusual drink request ever made. The most surreal: a guest once asked for a pint of Guinness 'but make it cocktail-y.' He was served a Guinness with a single cocktail umbrella. No charge.",
    illus:{bg:'#1a1a2a',walls:'#888888',door:'#cc8800',roof:'#222222',accent:'#ff9900'}},
-  {id:2,name:"BAR 1661",sub:"Green Street",tagline:"Irish whiskey, resurrected and unrepentant",icon:"🥃",
+  {id:2,name:"Green Street",sub:"BAR 1661",tagline:"Irish whiskey, resurrected and unrepentant",icon:"🥃",
    history:"Bar 1661 takes its name from the year Irish whiskey was first legally recorded in Dublin. The bar is a passionate act of cultural reclamation: Irish gin and whiskey are the only spirits served, with a particular focus on poitín — Ireland's ancient, once-illegal spirit. The bar has become a pilgrimage site for spirits enthusiasts and a classroom for anyone who thought Irish whiskey was just for tourists.",
    funFact:"Poitín was illegal in Ireland from 1661 to 1997 — exactly 336 years. Bar 1661 opened partly to mark its rehabilitation. The bar's namesake year is also when the British Crown first tried to tax Irish distillation, which the Irish responded to by making it at home anyway.",
    illus:{bg:'#1a0d00',walls:'#3d2010',door:'#8b1a1a',roof:'#2c1800',accent:'#c8a000'}},
-  {id:3,name:"THE BRAZEN HEAD",sub:"Bridge Street",tagline:"Ireland's oldest pub. Your ancestors drank here.",icon:"🏰",
+  {id:3,name:"Bridge Street",sub:"THE BRAZEN HEAD",tagline:"Ireland's oldest pub. Your ancestors drank here.",icon:"🏰",
    history:"Licensed since 1198 — though the building dates to 1613 — The Brazen Head claims the title of Ireland's oldest pub. Robert Emmet plotted rebellion here. Wolfe Tone's United Irishmen met in its back rooms. Jonathan Swift was a regular. The cobbled courtyard feels genuinely medieval, and the interior is dense archaeology of nationalist memorabilia, old photographs, and low ceilings that have absorbed eight centuries of conversation.",
    funFact:"The Brazen Head's guestbook contains signatures from a man who claimed to be descended from Brian Boru, a NASA engineer who visited specifically because his Irish grandmother told him to, and three separate people named Patrick who arrived on the same Tuesday in March and didn't know each other.",
    illus:{bg:'#0a0a14',walls:'#b0a898',door:'#5c3a1a',roof:'#2c2418',accent:'#e8c060'}},
-  {id:4,name:"JOHN FALLON'S",sub:"The Coombe, Liberties",tagline:"The Liberties never forgot how to drink properly",icon:"⚓",
+  {id:4,name:"The Coombe, Liberties",sub:"JOHN FALLON'S: The Capstan Bar",tagline:"The Liberties never forgot how to drink properly",icon:"⚓️",
    history:"The Capstan Bar sits in The Coombe in the heart of the Liberties, Dublin's oldest working-class neighbourhood and the historic centre of weaving, tanning, and brewing. John Fallon's has been a locals' pub for over a century, the kind of place that resisted gentrification not through protest but through indifference to it. The Capstan name references the days when Liffey dockworkers and Guinness workers drank here after shifts.",
    funFact:"The Liberties was once the site of dozens of independent breweries competing with — and frequently undercutting — the Guinness empire. St. James's Gate eventually won, but several Liberties pubs still serve their pints with a quiet, inherited resentment that some believe improves the flavour.",
    illus:{bg:'#140a00',walls:'#8b3a3a',door:'#2a1a0a',roof:'#1a0a00',accent:'#c87840'}},
-  {id:5,name:"THE STAG'S HEAD",sub:"Dame Court",tagline:"Victorian perfection, accidentally preserved",icon:"🦌",
+  {id:5,name:"Dame Court",sub:"THE STAG'S HEAD",tagline:"Victorian perfection, accidentally preserved",icon:"🦌",
    history:"Built in 1895 and miraculously unchanged, The Stag's Head on Dame Court is arguably Dublin's most beautiful Victorian pub interior. Its mahogany bar, mosaic floor, stained glass, and the mounted stag's head that gives the place its name survived the twentieth century intact by a combination of frugality and inertia. It's a listed building now, so the red carpet will stay threadbare and the ceiling will stay low forever.",
    funFact:"The Stag's Head is built into a laneway so narrow and unmarked that the pub has an unofficial second entrance through a shopping centre. Regulars use the shopping centre entrance. Tourists, directed here by locals for sport, arrive from Dame Street looking bewildered and eventually find it anyway.",
    illus:{bg:'#0a0a14',walls:'#6b4c3b',door:'#3d2010',roof:'#2c1800',accent:'#b87040'}},
-  {id:6,name:"GROGAN'S",sub:"South William Street",tagline:"Where Dublin's writers came to avoid writing",icon:"✒",
+  {id:6,name:"South William Street",sub:"GROGAN'S",tagline:"Where Dublin's writers came to avoid writing",icon:"✍🏽",
    history:"Grogan's is a Dublin institution of the literary-bohemian variety. It has been the daytime haunt of writers, artists, and people who are probably writers but haven't written anything yet for decades. The walls are covered in paintings by local artists, some sold to the pub for drink. Grogan's serves toasted sandwiches and pints and very little else, on the sound principle that everything else is a distraction. Samuel Beckett and Brendan Behan both drank here.",
    funFact:"The toasted cheese and ham sandwich at Grogan's is so legendary it has its own Wikipedia mention and has been described by at least three food writers as 'the best in Dublin.' It costs approximately nothing and is made on an industrial toastie machine that has been running since at least the 1980s. The machine has never been serviced.",
    illus:{bg:'#0d0a14',walls:'#f0ead0',door:'#1a4a1a',roof:'#2c2010',accent:'#4a8a4a'}},
-  {id:7,name:"KEHOE'S",sub:"South Anne Street",tagline:"The snug that time built and forgot to update",icon:"🪟",
+  {id:7,name:"South Anne Street",sub:"KEHOE'S",tagline:"The snug that time built and forgot to update",icon:"🪟",
    history:"Kehoe's on South Anne Street is one of the finest examples of a Victorian Dublin pub still functioning as intended. Its back snugs — tiny panelled compartments where women could drink without being seen in the main bar — survive intact, a relic of social history. John Kehoe ran it as a grocery-pub for much of the twentieth century; tins of beans and cigarettes sat behind the same counter as the porter taps.",
    funFact:"The upstairs of Kehoe's was the Kehoe family's private living quarters for most of its history. It is now a bar room, but the domestic layout — bedroom-sized alcoves, a parlour fireplace — makes it feel as if you're having a pint in someone's actual house. Which historically, you were.",
    illus:{bg:'#0a0a0a',walls:'#4a3020',door:'#2c1a0a',roof:'#1a1000',accent:'#c8a060'}},
-  {id:8,name:"THE TEMPLE BAR",sub:"Temple Bar",tagline:"The one tourists fear and locals secretly love to hate",icon:"☘",
+  {id:8,name:"Temple Bar",sub:"THE TEMPLE BAR",tagline:"The one tourists fear and locals secretly love to hate",icon:"☘️",
    history:"The Temple Bar pub — distinct from the Temple Bar cultural quarter it anchors — is almost cartoonishly Dublin in its exterior: red facade, hanging baskets, trad music spilling onto the cobbles every night. It exists at the intersection of tourist economy and genuine Irish pub culture and is frequently dismissed by Dublin purists. But it has been here since 1840, it pours a decent pint, and the session musicians are the real thing.",
    funFact:"The Temple Bar pub has appeared on more refrigerator magnets, postcards, and phone cases than any other single Dublin building. A design agency estimated that if stacked, all Temple Bar merchandise ever sold would reach approximately 4.2 kilometres high — roughly the altitude at which Irish weather becomes someone else's problem.",
    illus:{bg:'#140000',walls:'#cc2200',door:'#660000',roof:'#440000',accent:'#ffffff'}},
-  {id:9,name:"MULLIGAN'S",sub:"Poolbeg Street",tagline:"The Guinness benchmark. All other pints are arguments.",icon:"🍺",
+  {id:9,name:"Poolbeg Street",sub:"MULLIGAN'S",tagline:"The Guinness benchmark. All other pints are arguments.",icon:"🍺",
    history:"Mulligan's on Poolbeg Street has been licensed since 1782 and is widely regarded as serving one of the best pints of Guinness in Dublin — a city where that claim is made approximately three thousand times per day. John F. Kennedy drank here as a young journalist covering the Irish elections. James Joyce mentioned it. The Evening Press used to be printed across the street, and the journalists came here. It has no music, no food worth mentioning, and no pretensions.",
    funFact:"Mulligan's refused to join Guinness's 'Perfect Pint' marketing campaign in the 1990s. The management's position was that if you needed Guinness to certify your pint as perfect, you were already admitting uncertainty. This was widely reported as the best possible advertisement for Mulligan's.",
    illus:{bg:'#000000',walls:'#111111',door:'#0a0a0a',roof:'#000000',accent:'#c9a000'}}
 ];
 
 const MAP_NODES=[
-  {top:2360,left:45},{top:2160,left:22},{top:1960,left:65},
-  {top:1760,left:28},{top:1580,left:68},{top:1400,left:18},
-  {top:1220,left:58},{top:1040,left:32},{top:860,left:65},
-  {top:660,left:25},{top:460,left:48}
+  {top:2050,left:45},{top:1850,left:22},{top:1650,left:65},
+  {top:1450,left:28},{top:1270,left:68},{top:1090,left:18},
+  {top:910,left:58},{top:730,left:32},{top:550,left:65},
+  {top:350,left:25},{top:150,left:48}
 ];
 
 // ===== AVATAR SPRITE DATA (10x16 grids, 0=transparent) =====
@@ -992,6 +1022,7 @@ function checkClaimBtn(){
 }
 function claimDestiny(){
   if(!STATE.playerName||STATE.avatarId===null)return;
+  if(STATE.playerName.trim().toLowerCase()==='marcus') STATE.playerName='Markus med K';
   SFX.click();SFX.begin();
   STATE.startedAt=new Date().toISOString();
   saveState();
@@ -1058,18 +1089,20 @@ function renderMapNodes(){
         // available (next slot)
         div.classList.add('node-available');
         inner.textContent='❓';
-        label.textContent='NEXT STOP';
+        const nextStopLabels=['NEXT STOP','NEXT STOP','NEXT STOP','NXET STOP','NXET STOP','NXT STOPP','NXT STOPP','NEXY STOB','NEXY STOB','WER R WE','WER R WE'];
+        label.textContent=nextStopLabels[Math.min(STATE.visitedPubs.length,10)];
         div.onclick=()=>openPubModal();
         div.style.cursor='pointer';
       } else {
         // locked
         inner.textContent='🔒';
-        label.textContent='???';
+        label.textContent='?';
       }
     }
     div.appendChild(inner);div.appendChild(label);
     container.appendChild(div);
   }
+  applyDrunkEffects();
 }
 function renderMapPath(){
   const svg=document.getElementById('map-path-svg');
@@ -1160,6 +1193,48 @@ function positionAvatarOnMap(animate){
   av.style.top=pos.top+'px';
   av.style.left=(pos.left/100*W)+'px';
 }
+// ===== DRUNKENNESS EFFECTS =====
+const DRUNK_LABELS=['SOBER','SOBER','SOBER','TIPSY','TIPSY','MERRY','MERRY',"STEAMIN'","STEAMIN'",'LOCKED','LOCKED'];
+const DRUNK_BUTTON_TEXT={
+  'btn-next-pub':      [null,null,null,null,null,'⚑ NXET PUB','⚑ NXET PUB','⚑ MOAR PUBS!!','⚑ MOAR PUBS!!','⚑ GIMME BEBZ','⚑ GIMME BEBZ'],
+  'btn-finish-crawl':  [null,null,null,null,null,'🏁 FINSIH CRAWL','🏁 FINSIH CRAWL','🏁 IM DONE M8','🏁 IM DONE M8','🏁 HOEM PLEESE','🏁 HOEM PLEESE'],
+  'btn-continue-quest':[null,null,null,null,null,'▶ CARRY ON QUEST','▶ CARRY ON QUEST','▶ MOAR PUBS PLS','▶ MOAR PUBS PLS','▶ WAY 2 GO MATE','▶ WAY 2 GO MATE'],
+};
+function applyDrunkEffects(){
+  const level=Math.min(STATE.visitedPubs.length,10);
+  // Meter label
+  const label=document.getElementById('drunk-label');
+  if(label) label.textContent=DRUNK_LABELS[level];
+  // Meter bar
+  const bar=document.getElementById('drunk-bar');
+  if(bar){
+    bar.innerHTML='';
+    for(let i=0;i<10;i++){
+      const seg=document.createElement('span');
+      seg.className='drunk-seg'+(i<level?(i<4?' filled-low':i<7?' filled-mid':' filled-high'):'');
+      bar.appendChild(seg);
+    }
+  }
+  // Avatar wobble
+  const av=document.getElementById('player-avatar-map');
+  if(av){
+    av.style.animation=level>=9?'drunk-wobble-heavy 0.6s ease-in-out infinite'
+                      :level>=7?'drunk-wobble-heavy 0.9s ease-in-out infinite'
+                      :level>=5?'drunk-wobble-mild 1.2s ease-in-out infinite'
+                      :'none';
+  }
+  // Pub screen tilt
+  const pubScr=document.getElementById('screen-pub-experience');
+  if(pubScr){
+    pubScr.style.transform=level>=9?'rotate(-1.5deg)':level>=7?'rotate(-0.8deg)':'none';
+  }
+  // Button misspellings
+  Object.entries(DRUNK_BUTTON_TEXT).forEach(([id,texts])=>{
+    const btn=document.getElementById(id);
+    if(btn&&texts[level]) btn.textContent=texts[level];
+  });
+}
+
 function scrollToCurrentNode(){
   const mapScreen=document.getElementById('screen-world-map');
   const nodeIdx=Math.min(STATE.visitedPubs.length,10);
@@ -1224,6 +1299,7 @@ function selectPub(pubId){
   // transition to pub screen after walk
   setTimeout(()=>{
     SFX.unlock();
+    applyDrunkEffects();
     showScreen('pub-experience');
   },1500);
 }
