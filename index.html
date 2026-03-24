@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>The Dublin Crawl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --green-deep:#1a4a2e;--green-mid:#2d6a4f;--green-light:#3d8b5e;
+  --amber:#f4a261;--amber-dark:#e76f51;--amber-glow:#ffb347;
+  --wood-dark:#3d2b1f;--wood-mid:#5c3d2e;--wood-light:#7a5230;
+  --cream:#faf0e6;--cream-dark:#f5deb3;--cream-dim:#e8d5a3;
+  --gold:#ffd700;--gold-dim:#c9a000;
+  --sky:#0d0d1a;--sky2:#1a1a2e;
+  --text-dark:#1a0a00;--text-cream:#faf0e6;
+  --fn-h:'Press Start 2P',monospace;--fn-b:'VT323',monospace;
+  --px:4px;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--sky);}
+#app{
+  position:fixed;inset:0;
+  width:100%;
+  height:100dvh;
+  height:-webkit-fill-available;
+  overflow:hidden;
+  font-family:var(--fn-b);
+  color:var(--text-cream);
+  font-size:18px;
+}
+.screen{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.45s ease;
+  overflow:hidden;
+}
+.screen.active{opacity:1;pointer-events:all;}
+
+/* ===== BUTTONS ===== */
+.btn{
+  font-family:var(--fn-h);font-size:10px;
+  padding:14px 20px;
+  border:3px solid var(--gold);
+  background:var(--wood-dark);
+  color:var(--gold);
+  cursor:pointer;
+  image-rendering:pixelated;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  transition:background 0.1s,transform 0.1s,box-shadow 0.1s;
+  box-shadow:4px 4px 0 #000;
+  position:relative;
+  line-height:1.4;
+}
+.btn:hover:not(:disabled){background:var(--wood-mid);transform:translate(-2px,-2px);box-shadow:6px 6px 0 #000;}
+.btn:active:not(:disabled){transform:translate(2px,2px);box-shadow:2px 2px 0 #000;}
+.btn:disabled{opacity:0.4;cursor:not-allowed;border-color:#666;color:#888;}
+.btn-amber{background:var(--amber-dark);border-color:var(--cream);color:var(--cream);}
+.btn-amber:hover:not(:disabled){background:var(--amber);}
+.btn-green{background:var(--green-deep);border-color:var(--amber);color:var(--amber);}
+.btn-green:hover:not(:disabled){background:var(--green-mid);}
+.btn-sm{font-size:7px;padding:10px 14px;}
+
+/* ===== WELCOME SCREEN ===== */
+#screen-welcome{
+  background:linear-gradient(180deg,var(--sky) 0%,var(--sky2) 40%,var(--green-deep) 100%);
+  justify-content:center;gap:0;
+}
+#rain-canvas{position:absolute;inset:0;pointer-events:none;opacity:0.7;}
+.welcome-content{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;
+  gap:20px;padding:30px 24px;text-align:center;
+  max-width:400px;width:100%;
+}
+.pint-logo{
+  width:80px;height:80px;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 0 12px var(--amber));
+}
+.welcome-title{
+  font-family:var(--fn-h);font-size:clamp(14px,4.5vw,20px);
+  color:var(--amber);
+  text-shadow:3px 3px 0 #000,0 0 20px var(--amber-dark);
+  line-height:1.6;letter-spacing:2px;
+}
+.welcome-sub{
+  font-family:var(--fn-b);font-size:22px;
+  color:var(--cream-dark);
+  text-shadow:2px 2px 0 #000;
+}
+.welcome-actions{display:flex;flex-direction:column;gap:12px;align-items:center;width:100%;}
+.btn-continue-small{font-size:8px;background:transparent;border-color:var(--green-light);color:var(--green-light);padding:8px 16px;}
+.btn-continue-small:hover{background:rgba(45,106,79,0.3);}
+
+/* Street silhouette */
+.street-silhouette{
+  position:absolute;bottom:0;left:0;right:0;height:120px;
+  background:linear-gradient(180deg,transparent 0%,rgba(10,10,26,0.8) 60%,#000 100%);
+  pointer-events:none;
+}
+
+/* ===== ADVENTURER SCREEN ===== */
+#screen-adventurer{
+  background:linear-gradient(180deg,var(--wood-dark) 0%,var(--green-deep) 100%);
+  overflow-y:auto;
+}
+.adventurer-inner{
+  display:flex;flex-direction:column;align-items:center;
+  gap:20px;padding:30px 20px 40px;
+  max-width:420px;width:100%;
+}
+.screen-title{
+  font-family:var(--fn-h);font-size:clamp(9px,3vw,13px);
+  color:var(--gold);text-align:center;line-height:1.8;
+  text-shadow:2px 2px 0 #000;
+}
+.screen-title span{color:var(--amber);}
+.name-label{font-family:var(--fn-h);font-size:8px;color:var(--cream-dark);margin-bottom:8px;display:block;}
+.name-input{
+  width:100%;
+  font-family:var(--fn-b);font-size:22px;
+  background:var(--wood-dark);
+  border:3px solid var(--amber);
+  color:var(--cream);
+  padding:12px 14px;
+  outline:none;
+}
+.name-input:focus{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold-dim);}
+.avatar-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:12px;width:100%;
+}
+.avatar-card{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  background:var(--wood-dark);border:3px solid var(--wood-light);
+  padding:14px 8px 10px;cursor:pointer;
+  transition:border-color 0.1s,transform 0.1s,box-shadow 0.1s;
+  box-shadow:3px 3px 0 #000;
+}
+.avatar-card:hover{border-color:var(--amber);transform:translate(-2px,-2px);box-shadow:5px 5px 0 #000;}
+.avatar-card.selected{border-color:var(--gold);background:rgba(200,160,0,0.12);box-shadow:0 0 12px var(--gold-dim),5px 5px 0 #000;}
+.avatar-canvas{image-rendering:pixelated;display:block;}
+.avatar-name{font-family:var(--fn-h);font-size:6px;color:var(--cream-dark);text-align:center;line-height:1.4;}
+.avatar-card.selected .avatar-name{color:var(--gold);}
+
+/* idle animation containers */
+@keyframes idle-bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+@keyframes idle-sway{0%,100%{transform:rotate(0deg);}25%{transform:rotate(-3deg);}75%{transform:rotate(3deg);}}
+@keyframes idle-float{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-5px) scale(1.03);}}
+@keyframes idle-rock{0%,100%{transform:rotate(0deg);}30%{transform:rotate(4deg);}70%{transform:rotate(-4deg);}}
+@keyframes idle-nod{0%,100%{transform:rotate(0deg);}40%{transform:rotate(2deg);}80%{transform:rotate(-1deg);}}
+@keyframes idle-stand{0%,100%{transform:translateY(0);}50%{transform:translateY(-2px);}}
+
+.av-anim-0{animation:idle-sway 2s ease-in-out infinite;}
+.av-anim-1{animation:idle-bob 1.5s ease-in-out infinite;}
+.av-anim-2{animation:idle-float 2.5s ease-in-out infinite;}
+.av-anim-3{animation:idle-rock 1.8s ease-in-out infinite;}
+.av-anim-4{animation:idle-nod 2s ease-in-out infinite;}
+.av-anim-5{animation:idle-stand 3s ease-in-out infinite;}
+
+/* ===== WORLD MAP SCREEN ===== */
+#screen-world-map{
+  overflow-y:auto;overflow-x:hidden;
+  background:var(--sky);
+  flex-direction:column;
+  align-items:stretch;
+}
+#map-header{
+  position:sticky;top:0;z-index:10;
+  background:linear-gradient(180deg,rgba(13,13,26,0.98) 0%,rgba(13,13,26,0.85) 100%);
+  padding:10px 16px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:2px solid var(--green-deep);
+  backdrop-filter:blur(4px);
+}
+.map-player-info{display:flex;align-items:center;gap:10px;}
+.map-mini-avatar{image-rendering:pixelated;display:block;}
+.map-player-name{font-family:var(--fn-h);font-size:7px;color:var(--gold);}
+.map-progress{font-family:var(--fn-b);font-size:16px;color:var(--cream-dark);}
+.map-next-btn{font-size:7px;padding:10px 12px;}
+#map-inner{
+  position:relative;width:100%;height:2500px;
+  background:
+    radial-gradient(ellipse 80% 40% at 50% 75%,rgba(45,106,79,0.15) 0%,transparent 70%),
+    repeating-linear-gradient(0deg,transparent,transparent 31px,rgba(255,255,255,0.02) 31px,rgba(255,255,255,0.02) 32px),
+    repeating-linear-gradient(90deg,transparent,transparent 31px,rgba(255,255,255,0.02) 31px,rgba(255,255,255,0.02) 32px),
+    linear-gradient(180deg,var(--sky) 0%,#0f1520 30%,#0d1a0a 70%,#0a1505 100%);
+}
+#map-path-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.map-node{
+  position:absolute;
+  width:52px;height:52px;
+  transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:default;
+  z-index:3;
+}
+.node-inner{
+  width:48px;height:48px;
+  border:3px solid #444;
+  background:var(--wood-dark);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  position:relative;
+  transition:border-color 0.3s,box-shadow 0.3s;
+  box-shadow:3px 3px 0 #000;
+}
+.node-label{
+  font-family:var(--fn-h);font-size:5px;
+  color:var(--cream-dark);
+  text-align:center;
+  max-width:80px;
+  line-height:1.4;
+  margin-top:4px;
+  text-shadow:1px 1px 0 #000;
+  white-space:normal;
+  pointer-events:none;
+}
+.node-visited .node-inner{
+  border-color:var(--green-light);
+  background:var(--green-deep);
+  box-shadow:0 0 8px rgba(61,139,94,0.5),3px 3px 0 #000;
+}
+.node-visited .node-label{color:var(--green-light);}
+.node-available .node-inner{
+  border-color:var(--amber);
+  background:var(--wood-mid);
+  box-shadow:0 0 16px rgba(244,162,97,0.6),3px 3px 0 #000;
+  animation:node-bounce 1.2s ease-in-out infinite;
+  cursor:pointer;
+}
+.node-available .node-label{color:var(--amber);}
+.node-start .node-inner{border-color:var(--gold);background:var(--green-deep);box-shadow:0 0 12px rgba(255,215,0,0.4),3px 3px 0 #000;}
+.node-start .node-label{color:var(--gold);}
+@keyframes node-bounce{0%,100%{transform:translateY(0);}50%{transform:translateY(-6px);}}
+@keyframes node-pulse{0%,100%{box-shadow:0 0 8px rgba(255,215,0,0.3),3px 3px 0 #000;}50%{box-shadow:0 0 20px rgba(255,215,0,0.7),3px 3px 0 #000;}}
+
+#player-avatar-map{
+  position:absolute;
+  z-index:5;
+  transform:translate(-50%,-100%);
+  transition:top 1.2s ease-in-out,left 1.2s ease-in-out;
+  pointer-events:none;
+}
+#player-avatar-map canvas{image-rendering:pixelated;display:block;}
+#player-avatar-map .av-label{
+  font-family:var(--fn-h);font-size:5px;color:var(--gold);
+  text-align:center;margin-top:2px;
+  text-shadow:1px 1px 0 #000;
+  background:rgba(0,0,0,0.5);
+  padding:2px 4px;
+}
+
+/* Lampposts */
+.map-lamppost{
+  position:absolute;z-index:2;
+  width:8px;height:80px;
+  background:linear-gradient(180deg,#2a1a0a 0%,#3d2b1f 100%);
+}
+.map-lamppost::before{
+  content:'';position:absolute;
+  top:-18px;left:-12px;
+  width:20px;height:20px;
+  border:3px solid #5c3d2e;
+  border-bottom:none;
+  border-radius:10px 10px 0 0;
+}
+.map-lamppost::after{
+  content:'';position:absolute;
+  top:-14px;left:-6px;
+  width:8px;height:8px;
+  background:var(--amber-glow);
+  border-radius:50%;
+  box-shadow:0 0 20px 8px rgba(255,179,71,0.4),0 0 40px 16px rgba(255,179,71,0.15);
+  animation:flicker var(--flicker-dur,3.2s) ease-in-out infinite;
+}
+@keyframes flicker{
+  0%,100%{opacity:1;}10%{opacity:0.8;}20%{opacity:1;}30%{opacity:0.9;}
+  40%{opacity:1;}55%{opacity:0.75;}60%{opacity:1;}80%{opacity:0.85;}90%{opacity:1;}
+}
+
+/* ===== PUB CHOICE MODAL ===== */
+#modal-overlay{
+  position:fixed;inset:0;z-index:50;
+  background:rgba(0,0,0,0.75);
+  opacity:0;pointer-events:none;
+  transition:opacity 0.3s;
+}
+#modal-overlay.active{opacity:1;pointer-events:all;}
+#modal-choose-pub{
+  position:fixed;inset:0;z-index:51;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.3s,transform 0.3s;
+  transform:translateY(30px);
+}
+#modal-choose-pub.active{opacity:1;pointer-events:all;transform:translateY(0);}
+.modal-sheet{
+  width:100%;max-width:480px;
+  max-height:80dvh;
+  background:var(--wood-dark);
+  border-top:4px solid var(--amber);
+  border-left:2px solid var(--wood-light);
+  border-right:2px solid var(--wood-light);
+  display:flex;flex-direction:column;
+  box-shadow:0 -8px 32px rgba(0,0,0,0.8);
+}
+.modal-header{
+  padding:16px 20px 12px;
+  border-bottom:2px solid var(--wood-mid);
+  flex-shrink:0;
+}
+.modal-title{font-family:var(--fn-h);font-size:9px;color:var(--gold);line-height:1.6;text-shadow:2px 2px 0 #000;}
+.modal-sub{font-family:var(--fn-b);font-size:18px;color:var(--cream-dark);margin-top:4px;}
+.pub-choice-list{
+  overflow-y:auto;flex:1;
+  padding:8px 0;
+}
+.pub-choice-item{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 20px;
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,0.06);
+  transition:background 0.15s;
+}
+.pub-choice-item:hover{background:rgba(244,162,97,0.12);}
+.pub-choice-icon{font-size:28px;flex-shrink:0;}
+.pub-choice-text{flex:1;}
+.pub-choice-name{font-family:var(--fn-h);font-size:7px;color:var(--amber);line-height:1.5;}
+.pub-choice-area{font-family:var(--fn-b);font-size:16px;color:var(--cream-dark);}
+.pub-choice-tagline{font-family:var(--fn-b);font-size:15px;color:rgba(250,240,230,0.6);margin-top:2px;}
+.modal-footer{padding:12px 20px;flex-shrink:0;border-top:2px solid var(--wood-mid);}
+
+/* ===== PUB EXPERIENCE SCREEN ===== */
+#screen-pub-experience{
+  background:var(--wood-dark);
+  overflow-y:auto;
+}
+.pub-exp-inner{
+  display:flex;flex-direction:column;
+  width:100%;max-width:480px;
+  margin:0 auto;
+  min-height:100%;
+}
+.pub-illustration-wrap{
+  width:100%;
+  background:var(--sky);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  border-bottom:4px solid var(--wood-mid);
+  min-height:180px;
+  position:relative;
+  overflow:hidden;
+}
+.pub-illus-canvas{image-rendering:pixelated;display:block;max-width:100%;}
+.pub-exp-header{
+  padding:16px 20px 12px;
+  background:var(--wood-dark);
+  border-bottom:2px solid var(--wood-mid);
+}
+.pub-exp-name{font-family:var(--fn-h);font-size:clamp(9px,3.5vw,13px);color:var(--amber);line-height:1.6;text-shadow:2px 2px 0 #000;}
+.pub-exp-location{font-family:var(--fn-b);font-size:18px;color:var(--cream-dark);margin-top:4px;}
+.pub-exp-tagline{font-family:var(--fn-b);font-size:17px;color:var(--amber-dark);font-style:italic;margin-top:4px;}
+.pub-tabs{
+  display:flex;
+  border-bottom:3px solid var(--wood-mid);
+  background:var(--wood-dark);
+  flex-shrink:0;
+}
+.pub-tab{
+  flex:1;
+  font-family:var(--fn-h);font-size:7px;
+  padding:12px 8px;
+  cursor:pointer;
+  color:var(--cream-dim);
+  background:transparent;
+  border:none;
+  border-bottom:3px solid transparent;
+  margin-bottom:-3px;
+  transition:color 0.2s,border-color 0.2s;
+  line-height:1.5;
+}
+.pub-tab:hover{color:var(--cream);}
+.pub-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.pub-tab-content{
+  padding:20px;flex:1;
+  font-family:var(--fn-b);font-size:20px;
+  color:var(--cream);line-height:1.6;
+}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* Treasure chest */
+.treasure-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:16px;
+  padding:10px 0;
+}
+.treasure-chest{
+  width:80px;height:64px;
+  position:relative;cursor:pointer;
+  transition:transform 0.2s;
+}
+.treasure-chest:hover{transform:scale(1.05);}
+.chest-body{
+  position:absolute;bottom:0;left:0;right:0;height:44px;
+  background:var(--wood-mid);
+  border:3px solid var(--wood-light);
+  border-radius:2px;
+}
+.chest-body::after{
+  content:'';position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:14px;height:14px;
+  background:var(--gold);
+  border:2px solid var(--gold-dim);
+  border-radius:50%;
+}
+.chest-lid{
+  position:absolute;top:0;left:0;right:0;height:26px;
+  background:var(--wood-light);
+  border:3px solid var(--wood-light);
+  border-radius:2px 2px 0 0;
+  transform-origin:bottom center;
+  transition:transform 0.5s cubic-bezier(0.2,0.8,0.4,1.2);
+}
+.chest-lid.open{transform:rotateX(-120deg);}
+.chest-glow{
+  position:absolute;inset:-4px;
+  background:radial-gradient(ellipse,rgba(255,215,0,0.3) 0%,transparent 70%);
+  opacity:0;transition:opacity 0.5s;
+  pointer-events:none;
+}
+.chest-glow.visible{opacity:1;}
+.treasure-hint{font-family:var(--fn-h);font-size:7px;color:var(--amber);text-align:center;}
+.fun-fact-text{
+  font-family:var(--fn-b);font-size:19px;color:var(--cream);
+  line-height:1.65;opacity:0;
+  transition:opacity 0.6s;margin-top:8px;
+}
+.fun-fact-text.revealed{opacity:1;}
+
+/* Rating section */
+.pub-ratings{padding:16px 20px;background:var(--wood-dark);}
+.rating-title{font-family:var(--fn-h);font-size:8px;color:var(--gold);margin-bottom:14px;line-height:1.6;}
+.rating-row{margin-bottom:16px;}
+.rating-label{font-family:var(--fn-h);font-size:7px;color:var(--cream-dark);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.pint-row{display:flex;gap:4px;flex-wrap:nowrap;}
+.pint-btn{
+  width:28px;height:28px;
+  background:transparent;border:2px solid var(--wood-light);
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  transition:background 0.1s,border-color 0.1s,transform 0.1s;
+  line-height:1;padding:0;
+  flex-shrink:0;
+}
+.pint-btn:hover{border-color:var(--amber);background:rgba(244,162,97,0.15);transform:scale(1.1);}
+.pint-btn.filled{background:rgba(244,162,97,0.25);border-color:var(--amber);}
+.pint-btn.filled-gold{background:rgba(255,215,0,0.3);border-color:var(--gold);}
+.pub-bottom{
+  padding:16px 20px 32px;
+  display:flex;flex-direction:column;gap:12px;
+  background:var(--wood-dark);
+  border-top:2px solid var(--wood-mid);
+}
+#btn-continue-quest{display:none;}
+.saving-indicator{
+  font-family:var(--fn-h);font-size:7px;color:var(--green-light);
+  text-align:center;opacity:0;transition:opacity 0.3s;
+}
+.saving-indicator.visible{opacity:1;}
+@keyframes saving-blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* ===== COMPLETION SCREEN ===== */
+#screen-completion{
+  background:var(--sky);
+  overflow-y:auto;
+}
+#fireworks-canvas{position:fixed;inset:0;pointer-events:none;z-index:1;}
+.completion-inner{
+  position:relative;z-index:2;
+  display:flex;flex-direction:column;align-items:center;
+  gap:0;padding:30px 20px 60px;
+  max-width:480px;margin:0 auto;width:100%;
+}
+.completion-title{
+  font-family:var(--fn-h);font-size:clamp(9px,3vw,13px);
+  color:var(--gold);text-align:center;line-height:1.8;
+  text-shadow:0 0 20px var(--gold),2px 2px 0 #000;
+  margin-bottom:6px;
+}
+.completion-sub{font-family:var(--fn-b);font-size:22px;color:var(--cream-dark);text-align:center;margin-bottom:24px;}
+.report-hero{
+  display:flex;align-items:center;gap:16px;
+  background:var(--wood-dark);
+  border:3px solid var(--gold);
+  padding:16px 20px;width:100%;
+  box-shadow:4px 4px 0 #000;
+  margin-bottom:20px;
+}
+.report-hero-name{font-family:var(--fn-h);font-size:10px;color:var(--amber);line-height:1.6;}
+.report-pub-list{width:100%;margin-bottom:20px;}
+.report-pub-item{
+  display:flex;flex-direction:column;gap:4px;
+  background:var(--wood-dark);border:2px solid var(--wood-mid);
+  border-bottom:none;padding:10px 14px;
+}
+.report-pub-item:last-child{border-bottom:2px solid var(--wood-mid);}
+.report-pub-num{font-family:var(--fn-h);font-size:6px;color:var(--amber-dark);}
+.report-pub-name{font-family:var(--fn-h);font-size:7px;color:var(--cream);line-height:1.5;}
+.report-pub-scores{display:flex;gap:12px;margin-top:4px;}
+.score-badge{font-family:var(--fn-b);font-size:16px;color:var(--cream-dark);}
+.report-crowns{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;
+  width:100%;margin-bottom:20px;
+}
+.crown-card{
+  background:var(--wood-dark);border:3px solid var(--gold);
+  padding:12px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  box-shadow:3px 3px 0 #000;text-align:center;
+}
+.crown-card.champion{grid-column:1/-1;background:rgba(200,160,0,0.12);}
+.crown-emoji{font-size:28px;}
+.crown-label{font-family:var(--fn-h);font-size:6px;color:var(--gold-dim);line-height:1.5;}
+.crown-pub{font-family:var(--fn-b);font-size:18px;color:var(--cream);line-height:1.3;}
+.crown-score{font-family:var(--fn-b);font-size:16px;color:var(--amber);}
+.commentary-box{
+  width:100%;
+  background:rgba(26,74,46,0.4);
+  border:2px solid var(--green-light);
+  padding:16px;
+  font-family:var(--fn-b);font-size:20px;
+  color:var(--cream);line-height:1.65;
+  font-style:italic;
+  margin-bottom:20px;
+}
+.report-restart{width:100%;}
+
+/* ===== TRANSITIONS ===== */
+@keyframes screen-in{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.screen-enter{animation:screen-in 0.4s ease both;}
+
+/* Scrollbar styling */
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:var(--wood-dark);}
+::-webkit-scrollbar-thumb{background:var(--wood-light);border-radius:3px;}
+
+/* Mobile tap highlight remove */
+*{-webkit-tap-highlight-color:transparent;}
+input{-webkit-appearance:none;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- WELCOME SCREEN -->
+  <div id="screen-welcome" class="screen">
+    <canvas id="rain-canvas"></canvas>
+    <div class="welcome-content">
+      <canvas id="pint-logo" class="pint-logo" width="20" height="20" style="width:80px;height:80px;image-rendering:pixelated;filter:drop-shadow(0 0 12px #f4a261);"></canvas>
+      <div class="welcome-title">THE DUBLIN<br>CRAWL</div>
+      <div class="welcome-sub">A legendary pub crawl awaits</div>
+      <div class="welcome-actions">
+        <button class="btn btn-amber" id="btn-begin" onclick="beginQuest()">⚔ Begin Your Quest</button>
+        <button class="btn btn-continue-small" id="btn-continue-save" style="display:none" onclick="continueSave()">▶ Continue Your Crawl</button>
+        <button class="btn btn-continue-small" id="btn-fresh" style="display:none;font-size:7px;color:#888;border-color:#555;" onclick="startFresh()">✕ Start Fresh</button>
+      </div>
+    </div>
+    <div class="street-silhouette"></div>
+  </div>
+
+  <!-- ADVENTURER SCREEN -->
+  <div id="screen-adventurer" class="screen">
+    <div class="adventurer-inner">
+      <div class="screen-title">WHO ARE YOU,<br><span>BRAVE TRAVELER?</span></div>
+      <div style="width:100%">
+        <label class="name-label" for="player-name">YOUR NAME</label>
+        <input type="text" id="player-name" class="name-input" placeholder="Enter your name..." maxlength="20" oninput="onNameInput()">
+      </div>
+      <div style="width:100%">
+        <div style="font-family:var(--fn-h);font-size:8px;color:var(--cream-dark);margin-bottom:12px;">CHOOSE YOUR ADVENTURER</div>
+        <div class="avatar-grid" id="avatar-grid"></div>
+      </div>
+      <button class="btn btn-amber" id="btn-claim" onclick="claimDestiny()" disabled style="width:100%">⚡ Claim Your Destiny</button>
+    </div>
+  </div>
+
+  <!-- WORLD MAP SCREEN -->
+  <div id="screen-world-map" class="screen">
+    <div id="map-header">
+      <div class="map-player-info">
+        <canvas id="map-mini-av" class="map-mini-avatar" width="10" height="16" style="width:30px;height:48px;"></canvas>
+        <div>
+          <div class="map-player-name" id="map-player-name">ADVENTURER</div>
+          <div class="map-progress" id="map-progress">0 / 10 pubs</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;">
+        <button class="btn btn-green map-next-btn" id="btn-next-pub" onclick="openPubModal()">⚑ NEXT PUB</button>
+        <button class="btn map-next-btn" id="btn-finish-crawl" onclick="finishCrawl()" style="display:none;font-size:6px;background:#3d1a00;border-color:#c87040;color:#f0a060;padding:6px 10px;">🏁 FINISH CRAWL</button>
+      </div>
+    </div>
+    <div id="map-inner">
+      <svg id="map-path-svg" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;"></svg>
+      <div id="map-nodes"></div>
+      <div id="player-avatar-map">
+        <canvas id="map-av-canvas" width="10" height="16" style="width:40px;height:64px;"></canvas>
+        <div class="av-label" id="map-av-label"></div>
+      </div>
+      <div class="map-lamppost" style="left:15%;top:2200px;--flicker-dur:3.1s;"></div>
+      <div class="map-lamppost" style="left:72%;top:1650px;--flicker-dur:2.7s;"></div>
+      <div class="map-lamppost" style="left:40%;top:1100px;--flicker-dur:3.5s;"></div>
+      <div class="map-lamppost" style="left:80%;top:600px;--flicker-dur:2.4s;"></div>
+    </div>
+  </div>
+
+  <!-- PUB EXPERIENCE SCREEN -->
+  <div id="screen-pub-experience" class="screen">
+    <div class="pub-exp-inner" id="pub-exp-inner"></div>
+  </div>
+
+  <!-- COMPLETION SCREEN -->
+  <div id="screen-completion" class="screen">
+    <canvas id="fireworks-canvas"></canvas>
+    <div class="completion-inner" id="completion-inner"></div>
+  </div>
+
+  <!-- PUB CHOICE MODAL -->
+  <div id="modal-overlay" onclick="closePubModal()"></div>
+  <div id="modal-choose-pub">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">WHERE SHALL WE VENTURE?</div>
+        <div class="modal-sub" id="modal-sub-text">Choose wisely, brave traveler</div>
+      </div>
+      <div class="pub-choice-list" id="pub-choice-list"></div>
+      <div class="modal-footer">
+        <button class="btn btn-sm" onclick="closePubModal()" style="width:100%;border-color:#666;color:#999;">✕ NOT YET</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+'use strict';
+
+// ===== PUB DATA =====
+const PUBS = [
+  {id:0,name:"THE COBBLESTONE",sub:"Smithfield",tagline:"Where the music never dies and neither does the craic",icon:"🎻",
+   history:"Built in the 1840s, The Cobblestone is one of Dublin's most beloved traditional Irish music pubs. Located in Smithfield, it survived the Celtic Tiger redevelopment era and became a cultural battleground in 2021 when a hotel development threatened its future. The community rallied, trad sessions raged in protest, and the pub endured. Its backroom sessions run nightly without amplification — the way it was always meant to be.",
+   funFact:"The Cobblestone has never had a televised sporting event. Landlord Tom Mulligan famously said he'd sooner drain every pint in the cellar than install a screen. The trad musicians regard this as sacred law.",
+   illus:{bg:'#1a2a1a',walls:'#e8e0d0',door:'#2244aa',roof:'#3d2b1f',accent:'#4a7a3a'}},
+  {id:1,name:"Smithfield",sub:"BONOBO",tagline:"The cocktail alchemist hiding in plain sight",icon:"🍸",
+   history:"Named not for U2's frontman but for the great ape — a creature known for its peaceful, pleasure-seeking nature. Bonobo opened as part of Smithfield's quiet reinvention, sitting in deliberate contrast to its traditional neighbour The Cobblestone: craft cocktails, curated spirits, and an interior that mixes brutalist concrete with warm amber lighting. A new Dublin talking to an old Dublin across the cobblestones.",
+   funFact:"Bonobo's head bartender keeps a notebook of every unusual drink request ever made. The most surreal: a guest once asked for a pint of Guinness 'but make it cocktail-y.' He was served a Guinness with a single cocktail umbrella. No charge.",
+   illus:{bg:'#1a1a2a',walls:'#888888',door:'#cc8800',roof:'#222222',accent:'#ff9900'}},
+  {id:2,name:"BAR 1661",sub:"Green Street",tagline:"Irish whiskey, resurrected and unrepentant",icon:"🥃",
+   history:"Bar 1661 takes its name from the year Irish whiskey was first legally recorded in Dublin. The bar is a passionate act of cultural reclamation: Irish gin and whiskey are the only spirits served, with a particular focus on poitín — Ireland's ancient, once-illegal spirit. The bar has become a pilgrimage site for spirits enthusiasts and a classroom for anyone who thought Irish whiskey was just for tourists.",
+   funFact:"Poitín was illegal in Ireland from 1661 to 1997 — exactly 336 years. Bar 1661 opened partly to mark its rehabilitation. The bar's namesake year is also when the British Crown first tried to tax Irish distillation, which the Irish responded to by making it at home anyway.",
+   illus:{bg:'#1a0d00',walls:'#3d2010',door:'#8b1a1a',roof:'#2c1800',accent:'#c8a000'}},
+  {id:3,name:"THE BRAZEN HEAD",sub:"Bridge Street",tagline:"Ireland's oldest pub. Your ancestors drank here.",icon:"🏰",
+   history:"Licensed since 1198 — though the building dates to 1613 — The Brazen Head claims the title of Ireland's oldest pub. Robert Emmet plotted rebellion here. Wolfe Tone's United Irishmen met in its back rooms. Jonathan Swift was a regular. The cobbled courtyard feels genuinely medieval, and the interior is dense archaeology of nationalist memorabilia, old photographs, and low ceilings that have absorbed eight centuries of conversation.",
+   funFact:"The Brazen Head's guestbook contains signatures from a man who claimed to be descended from Brian Boru, a NASA engineer who visited specifically because his Irish grandmother told him to, and three separate people named Patrick who arrived on the same Tuesday in March and didn't know each other.",
+   illus:{bg:'#0a0a14',walls:'#b0a898',door:'#5c3a1a',roof:'#2c2418',accent:'#e8c060'}},
+  {id:4,name:"JOHN FALLON'S",sub:"The Coombe, Liberties",tagline:"The Liberties never forgot how to drink properly",icon:"⚓",
+   history:"The Capstan Bar sits in The Coombe in the heart of the Liberties, Dublin's oldest working-class neighbourhood and the historic centre of weaving, tanning, and brewing. John Fallon's has been a locals' pub for over a century, the kind of place that resisted gentrification not through protest but through indifference to it. The Capstan name references the days when Liffey dockworkers and Guinness workers drank here after shifts.",
+   funFact:"The Liberties was once the site of dozens of independent breweries competing with — and frequently undercutting — the Guinness empire. St. James's Gate eventually won, but several Liberties pubs still serve their pints with a quiet, inherited resentment that some believe improves the flavour.",
+   illus:{bg:'#140a00',walls:'#8b3a3a',door:'#2a1a0a',roof:'#1a0a00',accent:'#c87840'}},
+  {id:5,name:"THE STAG'S HEAD",sub:"Dame Court",tagline:"Victorian perfection, accidentally preserved",icon:"🦌",
+   history:"Built in 1895 and miraculously unchanged, The Stag's Head on Dame Court is arguably Dublin's most beautiful Victorian pub interior. Its mahogany bar, mosaic floor, stained glass, and the mounted stag's head that gives the place its name survived the twentieth century intact by a combination of frugality and inertia. It's a listed building now, so the red carpet will stay threadbare and the ceiling will stay low forever.",
+   funFact:"The Stag's Head is built into a laneway so narrow and unmarked that the pub has an unofficial second entrance through a shopping centre. Regulars use the shopping centre entrance. Tourists, directed here by locals for sport, arrive from Dame Street looking bewildered and eventually find it anyway.",
+   illus:{bg:'#0a0a14',walls:'#6b4c3b',door:'#3d2010',roof:'#2c1800',accent:'#b87040'}},
+  {id:6,name:"GROGAN'S",sub:"South William Street",tagline:"Where Dublin's writers came to avoid writing",icon:"✒",
+   history:"Grogan's is a Dublin institution of the literary-bohemian variety. It has been the daytime haunt of writers, artists, and people who are probably writers but haven't written anything yet for decades. The walls are covered in paintings by local artists, some sold to the pub for drink. Grogan's serves toasted sandwiches and pints and very little else, on the sound principle that everything else is a distraction. Samuel Beckett and Brendan Behan both drank here.",
+   funFact:"The toasted cheese and ham sandwich at Grogan's is so legendary it has its own Wikipedia mention and has been described by at least three food writers as 'the best in Dublin.' It costs approximately nothing and is made on an industrial toastie machine that has been running since at least the 1980s. The machine has never been serviced.",
+   illus:{bg:'#0d0a14',walls:'#f0ead0',door:'#1a4a1a',roof:'#2c2010',accent:'#4a8a4a'}},
+  {id:7,name:"KEHOE'S",sub:"South Anne Street",tagline:"The snug that time built and forgot to update",icon:"🪟",
+   history:"Kehoe's on South Anne Street is one of the finest examples of a Victorian Dublin pub still functioning as intended. Its back snugs — tiny panelled compartments where women could drink without being seen in the main bar — survive intact, a relic of social history. John Kehoe ran it as a grocery-pub for much of the twentieth century; tins of beans and cigarettes sat behind the same counter as the porter taps.",
+   funFact:"The upstairs of Kehoe's was the Kehoe family's private living quarters for most of its history. It is now a bar room, but the domestic layout — bedroom-sized alcoves, a parlour fireplace — makes it feel as if you're having a pint in someone's actual house. Which historically, you were.",
+   illus:{bg:'#0a0a0a',walls:'#4a3020',door:'#2c1a0a',roof:'#1a1000',accent:'#c8a060'}},
+  {id:8,name:"THE TEMPLE BAR",sub:"Temple Bar",tagline:"The one tourists fear and locals secretly love to hate",icon:"☘",
+   history:"The Temple Bar pub — distinct from the Temple Bar cultural quarter it anchors — is almost cartoonishly Dublin in its exterior: red facade, hanging baskets, trad music spilling onto the cobbles every night. It exists at the intersection of tourist economy and genuine Irish pub culture and is frequently dismissed by Dublin purists. But it has been here since 1840, it pours a decent pint, and the session musicians are the real thing.",
+   funFact:"The Temple Bar pub has appeared on more refrigerator magnets, postcards, and phone cases than any other single Dublin building. A design agency estimated that if stacked, all Temple Bar merchandise ever sold would reach approximately 4.2 kilometres high — roughly the altitude at which Irish weather becomes someone else's problem.",
+   illus:{bg:'#140000',walls:'#cc2200',door:'#660000',roof:'#440000',accent:'#ffffff'}},
+  {id:9,name:"MULLIGAN'S",sub:"Poolbeg Street",tagline:"The Guinness benchmark. All other pints are arguments.",icon:"🍺",
+   history:"Mulligan's on Poolbeg Street has been licensed since 1782 and is widely regarded as serving one of the best pints of Guinness in Dublin — a city where that claim is made approximately three thousand times per day. John F. Kennedy drank here as a young journalist covering the Irish elections. James Joyce mentioned it. The Evening Press used to be printed across the street, and the journalists came here. It has no music, no food worth mentioning, and no pretensions.",
+   funFact:"Mulligan's refused to join Guinness's 'Perfect Pint' marketing campaign in the 1990s. The management's position was that if you needed Guinness to certify your pint as perfect, you were already admitting uncertainty. This was widely reported as the best possible advertisement for Mulligan's.",
+   illus:{bg:'#000000',walls:'#111111',door:'#0a0a0a',roof:'#000000',accent:'#c9a000'}}
+];
+
+const MAP_NODES=[
+  {top:2360,left:45},{top:2160,left:22},{top:1960,left:65},
+  {top:1760,left:28},{top:1580,left:68},{top:1400,left:18},
+  {top:1220,left:58},{top:1040,left:32},{top:860,left:65},
+  {top:660,left:25},{top:460,left:48}
+];
+
+// ===== AVATAR SPRITE DATA (10x16 grids, 0=transparent) =====
+// Colors indexed: each avatar has its own palette array
+const AVATARS=[
+  {name:"Viking",   anim:0, palette:['','#8a9db0','#c9a87c','#8b1a1a','#e8d5a3','#5a4a3a','#222'],
+   px:[[0,0,1,0,0,0,1,0,0,0],[0,1,1,1,1,1,1,1,0,0],[0,1,2,2,2,2,2,1,0,0],[0,1,2,2,2,2,2,1,0,0],
+       [0,0,4,2,2,2,4,0,0,0],[0,0,4,4,4,4,4,0,0,0],[0,3,3,3,3,3,3,3,0,0],[3,3,1,1,1,1,1,3,3,0],
+       [3,3,1,1,1,1,1,3,3,0],[0,3,1,1,1,1,1,3,0,0],[0,3,3,3,3,3,3,3,0,0],[0,0,5,5,0,5,5,0,0,0],
+       [0,0,5,5,0,5,5,0,0,0],[0,0,5,5,0,5,5,0,0,0],[0,0,6,6,0,6,6,0,0,0],[0,0,0,0,0,0,0,0,0,0]]},
+  {name:"Bard",     anim:1, palette:['','#3d6b4f','#c9a87c','#c8a000','#8b4513','#2c1a0e','#7a3a00'],
+   px:[[0,0,0,3,3,0,0,0,0,0],[0,0,3,3,3,3,0,0,0,0],[0,1,1,1,1,1,1,0,0,0],[0,0,2,2,2,2,0,0,0,0],
+       [0,0,2,2,2,2,0,0,0,0],[0,1,1,1,1,1,1,0,0,0],[0,1,2,1,1,1,1,0,0,0],[1,1,4,4,4,1,1,0,0,0],
+       [1,1,4,4,4,1,0,0,0,0],[0,1,1,1,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0,0],[0,0,5,5,0,5,5,0,0,0],
+       [0,0,5,5,0,5,5,0,0,0],[0,0,5,5,0,5,5,0,0,0],[0,0,6,6,0,6,6,0,0,0],[0,0,0,0,0,0,0,0,0,0]]},
+  {name:"Witch",    anim:2, palette:['','#4b0082','#c9a87c','#7fff00','#1a0a2a','#888','#222'],
+   px:[[0,0,0,1,1,0,0,0,0,0],[0,0,1,1,1,1,0,0,0,0],[0,1,1,1,1,1,1,0,0,0],[0,0,1,2,2,1,0,0,0,0],
+       [0,0,2,2,2,2,0,0,0,0],[0,1,1,2,2,1,1,0,0,0],[0,1,1,1,1,1,1,0,0,0],[4,1,1,3,3,1,1,4,0,0],
+       [4,1,3,3,3,3,1,4,0,0],[0,1,1,1,1,1,1,0,0,0],[0,1,1,1,1,1,1,0,0,0],[0,0,4,4,0,4,4,0,0,0],
+       [0,0,4,4,0,4,4,0,0,0],[0,0,4,4,0,4,4,0,0,0],[0,0,6,6,0,6,6,0,0,0],[0,0,0,0,0,0,0,0,0,0]]},
+  {name:"Sailor",   anim:3, palette:['','#001f5b','#c9a87c','#ffffff','#e74c3c','#1a3a6a','#111'],
+   px:[[0,0,3,3,3,3,3,0,0,0],[0,1,1,1,1,1,1,1,0,0],[0,0,2,2,2,2,2,0,0,0],[0,0,2,2,2,2,2,0,0,0],
+       [0,0,4,4,4,4,4,0,0,0],[0,1,1,1,1,1,1,1,0,0],[0,5,1,1,1,1,1,5,0,0],[1,5,1,1,1,1,1,5,1,0],
+       [1,5,1,1,1,1,1,5,1,0],[0,5,1,1,1,1,1,5,0,0],[0,0,1,1,1,1,0,0,0,0],[0,0,1,1,0,1,1,0,0,0],
+       [0,0,1,1,0,1,1,0,0,0],[0,0,1,1,0,1,1,0,0,0],[0,0,6,6,0,6,6,0,0,0],[0,0,0,0,0,0,0,0,0,0]]},
+  {name:"Scholar",  anim:4, palette:['','#5c3d2e','#c9a87c','#d4a017','#2c2c2c','#e8e0c8','#7a5230'],
+   px:[[0,0,4,4,4,4,0,0,0,0],[0,0,2,2,2,2,0,0,0,0],[0,0,2,4,2,4,2,0,0,0],[0,0,2,2,2,2,2,0,0,0],
+       [0,1,1,2,2,1,1,0,0,0],[0,1,1,1,1,1,1,0,0,0],[0,1,3,1,1,1,1,0,0,0],[1,1,3,3,1,1,1,0,0,0],
+       [1,1,3,3,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0,0],[0,1,1,1,1,1,0,0,0,0],[0,0,6,6,0,6,6,0,0,0],
+       [0,0,6,6,0,6,6,0,0,0],[0,0,6,6,0,6,6,0,0,0],[0,0,4,4,0,4,4,0,0,0],[0,0,0,0,0,0,0,0,0,0]]},
+  {name:"Knight",   anim:5, palette:['','#aaaaaa','#c9a87c','#800000','#333','#ffffff','#666'],
+   px:[[0,0,1,1,1,1,0,0,0,0],[0,1,1,1,1,1,1,0,0,0],[0,1,1,2,2,1,1,0,0,0],[0,1,4,4,4,4,1,0,0,0],
+       [0,1,1,4,4,1,1,0,0,0],[0,3,3,3,3,3,3,0,0,0],[3,3,1,1,1,1,3,3,0,0],[3,3,1,1,1,1,3,3,0,0],
+       [3,3,1,1,1,1,3,3,0,0],[0,3,1,1,1,1,3,0,0,0],[0,3,3,3,3,3,3,0,0,0],[0,0,1,1,0,1,1,0,0,0],
+       [0,0,1,1,0,1,1,0,0,0],[0,0,1,1,0,1,1,0,0,0],[0,0,6,6,0,6,6,0,0,0],[0,0,0,0,0,0,0,0,0,0]]}
+];
+
+// ===== STATE =====
+const STORAGE_KEY='dublin_crawl_v1';
+let STATE={
+  version:1,playerName:'',avatarId:null,
+  phase:'welcome',visitedPubs:[],currentPubId:null,
+  ratings:{},startedAt:null,completedAt:null
+};
+
+function saveState(){localStorage.setItem(STORAGE_KEY,JSON.stringify(STATE));}
+function loadState(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    const s=JSON.parse(raw);
+    if(s.version!==1)return false;
+    Object.assign(STATE,s);return true;
+  }catch(e){return false;}
+}
+function resetState(){
+  localStorage.removeItem(STORAGE_KEY);
+  STATE={version:1,playerName:'',avatarId:null,phase:'welcome',visitedPubs:[],currentPubId:null,ratings:{},startedAt:null,completedAt:null};
+}
+
+// ===== SOUND =====
+let audioCtx=null;
+function getAudio(){
+  if(!audioCtx){audioCtx=new(window.AudioContext||window.webkitAudioContext)();}
+  if(audioCtx.state==='suspended')audioCtx.resume();
+  return audioCtx;
+}
+document.addEventListener('visibilitychange',()=>{if(audioCtx&&audioCtx.state==='suspended')audioCtx.resume();});
+function tone(freq,type,gain,dur,delay=0){
+  try{
+    const ctx=getAudio();const t=ctx.currentTime+delay;
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type=type;o.frequency.value=freq;
+    g.gain.setValueAtTime(gain,t);
+    g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+    o.start(t);o.stop(t+dur);
+  }catch(e){}
+}
+function arpeggio(freqs,type,gain,noteDur=0.1){freqs.forEach((f,i)=>tone(f,type,gain,noteDur,i*noteDur*0.9));}
+const SFX={
+  click:()=>tone(440,'square',0.1,0.05),
+  select:()=>tone(660,'sine',0.08,0.08),
+  begin:()=>arpeggio([523,659,784],'square',0.15),
+  unlock:()=>arpeggio([392,494,587,784],'square',0.12),
+  tick:()=>tone(880,'triangle',0.05,0.06),
+  chest:()=>[523,659,784,1047,1319].forEach((f,i)=>tone(f,'triangle',0.07,0.15,i*0.06)),
+  pub:()=>arpeggio([523,659,784,1047],'square',0.18),
+  step:()=>{
+    try{
+      const ctx=getAudio();
+      const buf=ctx.createBuffer(1,ctx.sampleRate*0.04,ctx.sampleRate);
+      const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*0.12;
+      const s=ctx.createBufferSource(),f=ctx.createBiquadFilter();
+      f.type='highpass';f.frequency.value=1500;
+      s.buffer=buf;s.connect(f);f.connect(ctx.destination);s.start();
+    }catch(e){}
+  },
+  victory:()=>{
+    const m=[523,659,784,1047,784,1047,1319];
+    m.forEach((f,i)=>tone(f,'square',0.16,i<m.length-1?0.15:0.8,i*0.1));
+  }
+};
+
+// ===== CANVAS SPRITE DRAWING =====
+function drawSprite(canvas,avIdx,scale=4){
+  const av=AVATARS[avIdx];
+  const w=10,h=16;
+  canvas.width=w;canvas.height=h;
+  canvas.style.width=(w*scale)+'px';canvas.style.height=(h*scale)+'px';
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,w,h);
+  av.px.forEach((row,y)=>row.forEach((c,x)=>{
+    if(c){ctx.fillStyle=av.palette[c];ctx.fillRect(x,y,1,1);}
+  }));
+}
+
+function drawPintLogo(canvas){
+  canvas.width=20;canvas.height=20;
+  const ctx=canvas.getContext('2d');
+  const p=[
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0],
+    [0,0,0,1,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0],
+    [0,0,0,1,2,2,2,2,2,2,2,2,2,2,1,0,0,0,0,0],
+    [0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+    [0,0,0,0,1,3,3,3,3,3,3,3,3,1,0,0,0,0,0,0],
+    [0,0,0,0,1,3,3,3,3,3,3,3,3,1,0,0,0,0,0,0],
+    [0,0,0,0,0,1,3,3,3,3,3,3,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,3,3,3,3,3,3,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,3,3,3,3,3,3,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,1,3,3,3,3,3,3,1,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,3,3,3,3,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,1,3,3,3,3,1,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,3,3,1,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  ];
+  const pal=['','#f5deb3','#faf0e6','#c8a060'];
+  p.forEach((row,y)=>row.forEach((c,x)=>{if(c){ctx.fillStyle=pal[c];ctx.fillRect(x,y,1,1);}}));
+}
+
+function drawPubIllus(canvas,pub){
+  const W=160,H=100;
+  canvas.width=W;canvas.height=H;
+  canvas.style.width=W+'px';canvas.style.height=H+'px';
+  const ctx=canvas.getContext('2d');
+  const {bg,walls,door,roof,accent}=pub.illus;
+  // sky/bg
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // stars
+  ctx.fillStyle='#ffffff';
+  [[20,10],[45,6],[80,14],[120,8],[150,5],[35,22],[100,18],[140,25]].forEach(([x,y])=>{ctx.fillRect(x,y,1,1);ctx.fillRect(x+1,y,1,1);ctx.fillRect(x,y+1,1,1);});
+  // cobble ground
+  ctx.fillStyle='#2a2a2a';ctx.fillRect(0,88,W,12);
+  for(let x=0;x<W;x+=20){for(let y=89;y<H;y+=6){ctx.fillStyle=x%40?'#333':'#2c2c2c';ctx.fillRect(x+(y%12<6?0:2),y,18,5);}}
+  // building base
+  ctx.fillStyle=walls;ctx.fillRect(20,30,120,58);
+  // roof
+  ctx.fillStyle=roof;
+  ctx.beginPath();ctx.moveTo(10,32);ctx.lineTo(80,10);ctx.lineTo(150,32);ctx.closePath();ctx.fill();
+  // roof ridge accent
+  ctx.fillStyle=accent;ctx.fillRect(74,10,12,4);
+  // window left
+  ctx.fillStyle=accent;ctx.fillRect(28,42,22,18);
+  ctx.fillStyle='rgba(255,255,200,0.3)';ctx.fillRect(30,44,18,14);
+  ctx.fillStyle='#222';ctx.fillRect(38,42,2,18);ctx.fillRect(28,50,22,2);
+  // window right
+  ctx.fillStyle=accent;ctx.fillRect(110,42,22,18);
+  ctx.fillStyle='rgba(255,255,200,0.3)';ctx.fillRect(112,44,18,14);
+  ctx.fillStyle='#222';ctx.fillRect(120,42,2,18);ctx.fillRect(110,50,22,2);
+  // door
+  ctx.fillStyle=door;ctx.fillRect(68,56,24,32);
+  ctx.fillStyle=accent;ctx.fillRect(68,56,24,3);// door top
+  ctx.fillStyle='#8b6914';ctx.fillRect(85,70,4,4);// handle
+  // pub sign
+  ctx.fillStyle=accent;ctx.fillRect(40,34,80,10);
+  ctx.fillStyle='#000';ctx.fillRect(41,35,78,8);
+  // sign text (pixel-art dots)
+  ctx.fillStyle=accent;
+  // simple dots to suggest text
+  for(let i=0;i<6;i++){ctx.fillRect(46+i*12,38,8,2);}
+  // chimney
+  ctx.fillStyle=walls;ctx.fillRect(100,8,12,24);
+  ctx.fillStyle='#444';ctx.fillRect(98,6,16,4);
+  // smoke
+  ctx.fillStyle='rgba(180,180,180,0.3)';ctx.fillRect(104,2,4,4);ctx.fillRect(106,0,2,2);
+}
+
+// ===== SCREEN MANAGEMENT =====
+let currentScreen=null;
+let rainRAF=null,walkTimer=null;
+
+function showScreen(name){
+  if(currentScreen===name)return;
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');});
+  const el=document.getElementById('screen-'+name);
+  if(el){el.classList.add('active');}
+  // teardown old
+  if(currentScreen==='welcome')stopRain();
+  if(currentScreen==='completion'&&fwRAF){cancelAnimationFrame(fwRAF);fwRAF=null;fireworks=[];}
+  currentScreen=name;
+  STATE.phase=name;
+  saveState();
+  // init new
+  if(name==='welcome')initWelcome();
+  else if(name==='adventurer')initAdventurer();
+  else if(name==='world-map')initWorldMap();
+  else if(name==='pub-experience')initPubExp();
+  else if(name==='completion')initCompletion();
+}
+
+// ===== WELCOME SCREEN =====
+let rainDrops=[];
+function initWelcome(){
+  drawPintLogo(document.getElementById('pint-logo'));
+  const hasSave=STATE.playerName&&STATE.visitedPubs;
+  const showResume=!!(STATE.playerName&&STATE.avatarId!==null&&(STATE.visitedPubs.length>0||STATE.phase==='adventurer'||STATE.phase==='world-map'||STATE.phase==='pub-experience'||STATE.phase==='completion'));
+  document.getElementById('btn-begin').style.display=showResume?'none':'block';
+  document.getElementById('btn-continue-save').style.display=showResume?'block':'none';
+  document.getElementById('btn-fresh').style.display=showResume?'block':'none';
+  startRain();
+}
+function startRain(){
+  const canvas=document.getElementById('rain-canvas');
+  const el=document.getElementById('screen-welcome');
+  const resize=()=>{canvas.width=el.offsetWidth||window.innerWidth;canvas.height=el.offsetHeight||window.innerHeight;};
+  resize();window.addEventListener('resize',resize);
+  const ctx=canvas.getContext('2d');
+  rainDrops=Array.from({length:80},()=>({x:Math.random()*canvas.width,y:Math.random()*canvas.height,l:Math.random()*10+8,s:Math.random()*2+3}));
+  function loop(){
+    if(currentScreen!=='welcome'){stopRain();return;}
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    rainDrops.forEach(d=>{
+      ctx.fillStyle='rgba(174,194,224,0.35)';
+      ctx.fillRect(d.x,d.y,1,d.l);
+      d.y+=d.s;if(d.y>canvas.height){d.y=-d.l;d.x=Math.random()*canvas.width;}
+    });
+    rainRAF=requestAnimationFrame(loop);
+  }
+  loop();
+}
+function stopRain(){if(rainRAF){cancelAnimationFrame(rainRAF);rainRAF=null;}}
+function beginQuest(){SFX.click();SFX.begin();showScreen('adventurer');}
+function continueSave(){
+  SFX.click();
+  let dest=STATE.phase;
+  if(!dest||dest==='welcome')dest='world-map';
+  // if saved mid-pub but currentPubId lost, go back to map
+  if(dest==='pub-experience'&&STATE.currentPubId===null)dest='world-map';
+  showScreen(dest);
+}
+function startFresh(){SFX.click();resetState();location.reload();}
+
+// ===== ADVENTURER SCREEN =====
+function initAdventurer(){
+  const grid=document.getElementById('avatar-grid');
+  grid.innerHTML='';
+  AVATARS.forEach((av,i)=>{
+    const card=document.createElement('div');
+    card.className='avatar-card'+(STATE.avatarId===i?' selected':'');
+    card.onclick=()=>selectAvatar(i);
+    const wrap=document.createElement('div');
+    wrap.className='av-anim-'+av.anim;wrap.style.display='flex';wrap.style.justifyContent='center';
+    const c=document.createElement('canvas');
+    drawSprite(c,i,4);
+    wrap.appendChild(c);
+    card.appendChild(wrap);
+    const nm=document.createElement('div');nm.className='avatar-name';nm.textContent=av.name;
+    card.appendChild(nm);grid.appendChild(card);
+  });
+  const nameEl=document.getElementById('player-name');
+  if(STATE.playerName)nameEl.value=STATE.playerName;
+  checkClaimBtn();
+}
+function onNameInput(){
+  STATE.playerName=document.getElementById('player-name').value.trim();
+  checkClaimBtn();
+}
+function selectAvatar(i){
+  SFX.select();
+  STATE.avatarId=i;
+  document.querySelectorAll('.avatar-card').forEach((c,idx)=>c.classList.toggle('selected',idx===i));
+  checkClaimBtn();
+}
+function checkClaimBtn(){
+  document.getElementById('btn-claim').disabled=!(STATE.playerName&&STATE.avatarId!==null);
+}
+function claimDestiny(){
+  if(!STATE.playerName||STATE.avatarId===null)return;
+  SFX.click();SFX.begin();
+  STATE.startedAt=new Date().toISOString();
+  saveState();
+  showScreen('world-map');
+}
+
+// ===== WORLD MAP =====
+function initWorldMap(){
+  const nameEl=document.getElementById('map-player-name');
+  nameEl.textContent=STATE.playerName.toUpperCase();
+  document.getElementById('map-progress').textContent=STATE.visitedPubs.length+' / 10 pubs';
+  // mini avatar
+  const miniAv=document.getElementById('map-mini-av');
+  drawSprite(miniAv,STATE.avatarId,3);
+  // main avatar
+  const mapAv=document.getElementById('map-av-canvas');
+  drawSprite(mapAv,STATE.avatarId,4);
+  document.getElementById('map-av-label').textContent=STATE.playerName.slice(0,8).toUpperCase();
+  // animate class on avatar
+  const avWrap=document.getElementById('player-avatar-map');
+  avWrap.querySelector('.av-label').textContent=STATE.playerName.slice(0,8).toUpperCase();
+  const animClass='av-anim-'+AVATARS[STATE.avatarId].anim;
+  mapAv.parentElement.className='';
+  // position avatar
+  positionAvatarOnMap(false);
+  renderMapNodes();
+  renderMapPath();
+  // scroll to current node (map starts at bottom; visited=0 means scroll to bottom)
+  setTimeout(()=>scrollToCurrentNode(),300);
+  // next pub btn
+  const remaining=10-STATE.visitedPubs.length;
+  document.getElementById('btn-next-pub').textContent=remaining===0?'✓ DONE':'⚑ NEXT PUB';
+  document.getElementById('btn-next-pub').disabled=remaining===0;
+  // finish-early btn: show once at least 1 pub fully rated, hide when all done
+  const fullyRated=STATE.visitedPubs.filter(id=>{const r=STATE.ratings[id];return r&&r.firstDrink!==null&&r.vibe!==null&&r.overall!==null;});
+  const finishBtn=document.getElementById('btn-finish-crawl');
+  finishBtn.style.display=(fullyRated.length>0&&remaining>0)?'block':'none';
+}
+function renderMapNodes(){
+  const container=document.getElementById('map-nodes');
+  container.innerHTML='';
+  const nodeCount=STATE.visitedPubs.length; // how many pub nodes have been visited
+  for(let i=0;i<=10;i++){
+    const pos=MAP_NODES[i];
+    const div=document.createElement('div');
+    div.className='map-node';
+    div.style.top=pos.top+'px';
+    div.style.left=pos.left+'%';
+    const inner=document.createElement('div');inner.className='node-inner';
+    const label=document.createElement('div');label.className='node-label';
+    if(i===0){
+      div.classList.add('node-start');
+      inner.textContent='🏁';
+      label.textContent='THE STARTING LINE';
+    } else {
+      const slotIdx=i-1;// 0-indexed slot
+      if(slotIdx<STATE.visitedPubs.length){
+        // visited
+        div.classList.add('node-visited');
+        const pub=PUBS[STATE.visitedPubs[slotIdx]];
+        inner.textContent=pub.icon;
+        label.textContent=pub.name;
+      } else if(slotIdx===STATE.visitedPubs.length){
+        // available (next slot)
+        div.classList.add('node-available');
+        inner.textContent='❓';
+        label.textContent='NEXT STOP';
+        div.onclick=()=>openPubModal();
+        div.style.cursor='pointer';
+      } else {
+        // locked
+        inner.textContent='🔒';
+        label.textContent='???';
+      }
+    }
+    div.appendChild(inner);div.appendChild(label);
+    container.appendChild(div);
+  }
+}
+function renderMapPath(){
+  const svg=document.getElementById('map-path-svg');
+  const W=document.getElementById('map-inner').offsetWidth||375;
+  const coords=MAP_NODES.map(n=>({x:Math.round(n.left/100*W),y:n.top}));
+  const visited=STATE.visitedPubs.length;
+
+  function pts(nodes){return nodes.map(c=>c.x+','+c.y).join(' ');}
+  const allPts=pts(coords);
+  const donePts=visited>0?pts(coords.slice(0,visited+1)):null;
+
+  // Generate pebble/grass decoration dots deterministically along straight segments
+  let deco='';
+  for(let i=0;i<coords.length-1;i++){
+    const a=coords[i],b=coords[i+1];
+    const steps=Math.floor(Math.sqrt((b.x-a.x)**2+(b.y-a.y)**2)/28);
+    for(let s=1;s<steps;s++){
+      const t=s/steps;
+      const cx=a.x+(b.x-a.x)*t;
+      const cy=a.y+(b.y-a.y)*t;
+      // perpendicular offset for edge marks
+      const dx=b.x-a.x,dy=b.y-a.y;
+      const len=Math.sqrt(dx*dx+dy*dy);
+      const nx=-dy/len,ny=dx/len;// normal
+      // small edge ticks on both sides
+      const tickOff=9;
+      const rx=cx+nx*tickOff,ry=cy+ny*tickOff;
+      const lx=cx-nx*tickOff,ly=cy-ny*tickOff;
+      // alternate pebble sides using a simple hash
+      const h=(i*17+s*31)%7;
+      const col=h<2?'#2a1f0a':h<4?'#3a2c12':'#4a3a1e';
+      const sz=h%2===0?2:3;
+      deco+=`<circle cx="${rx.toFixed(1)}" cy="${ry.toFixed(1)}" r="${sz}" fill="${col}" opacity="0.7"/>`;
+      deco+=`<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="${sz-1||1}" fill="${col}" opacity="0.5"/>`;
+    }
+  }
+
+  svg.innerHTML=`
+    <defs>
+      <filter id="f-rough" x="-5%" y="-1%" width="110%" height="102%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.65 0.2" numOctaves="3" seed="4" result="noise"/>
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+      </filter>
+    </defs>
+
+    <!-- shadow -->
+    <polyline points="${allPts}" fill="none" stroke="#120800" stroke-width="20"
+      stroke-linecap="round" stroke-linejoin="round" opacity="0.55" filter="url(#f-rough)"/>
+
+    <!-- dirt base -->
+    <polyline points="${allPts}" fill="none" stroke="#5e3d18" stroke-width="16"
+      stroke-linecap="round" stroke-linejoin="round" filter="url(#f-rough)"/>
+
+    <!-- mid texture -->
+    <polyline points="${allPts}" fill="none" stroke="#7a5228" stroke-width="12"
+      stroke-linecap="round" stroke-linejoin="round" filter="url(#f-rough)"/>
+
+    <!-- worn center groove -->
+    <polyline points="${allPts}" fill="none" stroke="#8e6535" stroke-width="6"
+      stroke-linecap="round" stroke-linejoin="round"
+      stroke-dasharray="22,6" opacity="0.8"/>
+
+    <!-- edge ruts -->
+    <polyline points="${allPts}" fill="none" stroke="#3d2208" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" opacity="0.6"
+      stroke-dasharray="14,8"/>
+
+    <!-- pebble/edge decorations -->
+    ${deco}
+
+    ${donePts?`
+    <!-- travelled portion — brighter worn dirt -->
+    <polyline points="${donePts}" fill="none" stroke="#a07640" stroke-width="16"
+      stroke-linecap="round" stroke-linejoin="round" filter="url(#f-rough)" opacity="0.5"/>
+    <polyline points="${donePts}" fill="none" stroke="#c49a54" stroke-width="7"
+      stroke-linecap="round" stroke-linejoin="round"
+      stroke-dasharray="18,8" opacity="0.65"/>
+    `:''}
+  `;
+}
+function positionAvatarOnMap(animate){
+  const av=document.getElementById('player-avatar-map');
+  const visited=STATE.visitedPubs.length;
+  const nodeIdx=visited;// at node 0 initially, then node 1 after first visit, etc.
+  const pos=MAP_NODES[nodeIdx];
+  const W=document.getElementById('map-inner').offsetWidth||375;
+  if(!animate){av.style.transition='none';}else{av.style.transition='top 1.2s ease-in-out,left 1.2s ease-in-out';}
+  av.style.top=pos.top+'px';
+  av.style.left=(pos.left/100*W)+'px';
+}
+function scrollToCurrentNode(){
+  const mapScreen=document.getElementById('screen-world-map');
+  const nodeIdx=Math.min(STATE.visitedPubs.length,10);
+  const pos=MAP_NODES[nodeIdx];
+  // center the current/next node in viewport, offset for header (~60px)
+  const target=pos.top-(window.innerHeight/2)+60;
+  mapScreen.scrollTo({top:Math.max(0,target),behavior:'smooth'});
+}
+
+let pubModalOpen=false;
+function openPubModal(){
+  if(STATE.visitedPubs.length>=10)return;
+  SFX.click();
+  const available=PUBS.filter(p=>!STATE.visitedPubs.includes(p.id));
+  const list=document.getElementById('pub-choice-list');
+  list.innerHTML='';
+  document.getElementById('modal-sub-text').textContent=`Choose wisely, ${STATE.playerName}`;
+  available.forEach(pub=>{
+    const item=document.createElement('div');
+    item.className='pub-choice-item';
+    item.innerHTML=`<div class="pub-choice-icon">${pub.icon}</div>
+      <div class="pub-choice-text">
+        <div class="pub-choice-name">${pub.name}</div>
+        <div class="pub-choice-area">${pub.sub}</div>
+        <div class="pub-choice-tagline">${pub.tagline}</div>
+      </div>`;
+    item.onclick=()=>selectPub(pub.id);
+    list.appendChild(item);
+  });
+  document.getElementById('modal-overlay').classList.add('active');
+  document.getElementById('modal-choose-pub').classList.add('active');
+  pubModalOpen=true;
+}
+function closePubModal(){
+  document.getElementById('modal-overlay').classList.remove('active');
+  document.getElementById('modal-choose-pub').classList.remove('active');
+  pubModalOpen=false;
+}
+function selectPub(pubId){
+  SFX.click();
+  closePubModal();
+  // add to visited BEFORE animating so node renders correctly
+  STATE.visitedPubs.push(pubId);
+  STATE.currentPubId=pubId;
+  STATE.ratings[pubId]={firstDrink:null,vibe:null,overall:null};
+  saveState();
+  // Update node immediately
+  renderMapNodes();
+  // animate avatar to new position
+  const av=document.getElementById('player-avatar-map');
+  const visited=STATE.visitedPubs.length;
+  const pos=MAP_NODES[visited];// new position
+  const W=document.getElementById('map-inner').offsetWidth||375;
+  av.style.transition='top 1.2s ease-in-out,left 1.2s ease-in-out';
+  av.style.top=pos.top+'px';
+  av.style.left=(pos.left/100*W)+'px';
+  // play footsteps during walk
+  let steps=0;
+  const stepInterval=setInterval(()=>{SFX.step();steps++;if(steps>=3)clearInterval(stepInterval);},400);
+  // scroll map to new position
+  setTimeout(()=>scrollToCurrentNode(),200);
+  // transition to pub screen after walk
+  setTimeout(()=>{
+    SFX.unlock();
+    showScreen('pub-experience');
+  },1500);
+}
+
+// ===== PUB EXPERIENCE =====
+let currentTab='story';
+function initPubExp(){
+  chestOpened=false;
+  const pub=PUBS[STATE.currentPubId];
+  const ratings=STATE.ratings[pub.id];
+  const inner=document.getElementById('pub-exp-inner');
+  inner.innerHTML=`
+    <div class="pub-illustration-wrap">
+      <canvas id="pub-illus-canvas" class="pub-illus-canvas"></canvas>
+    </div>
+    <div class="pub-exp-header">
+      <div class="pub-exp-name">${pub.name}</div>
+      <div class="pub-exp-location">${pub.sub}</div>
+      <div class="pub-exp-tagline">"${pub.tagline}"</div>
+    </div>
+    <div class="pub-tabs">
+      <button class="pub-tab active" id="tab-story-btn" onclick="switchTab('story')">📖 THE STORY</button>
+      <button class="pub-tab" id="tab-fact-btn" onclick="switchTab('fact')">💎 FUN FACT</button>
+    </div>
+    <div class="pub-tab-content">
+      <div class="tab-panel active" id="tab-story">${pub.history}</div>
+      <div class="tab-panel" id="tab-fact">
+        <div class="treasure-wrap">
+          <div class="treasure-chest" id="treasure-chest" onclick="openChest()">
+            <div class="chest-glow" id="chest-glow"></div>
+            <div class="chest-lid" id="chest-lid"></div>
+            <div class="chest-body"></div>
+          </div>
+          <div class="treasure-hint" id="treasure-hint">TAP TO REVEAL</div>
+          <div class="fun-fact-text" id="fun-fact-text">${pub.funFact}</div>
+        </div>
+      </div>
+    </div>
+    <div class="pub-ratings">
+      <div class="rating-title">RATE YOUR EXPERIENCE</div>
+      ${ratingRow('firstDrink','🍺','FIRST DRINK',ratings.firstDrink)}
+      ${ratingRow('vibe','🎭','THE VIBE',ratings.vibe)}
+      ${ratingRow('overall','⭐','OVERALL',ratings.overall)}
+    </div>
+    <div class="pub-bottom">
+      <div class="saving-indicator" id="saving-indicator">✓ PROGRESS SAVED</div>
+      <button class="btn btn-amber" id="btn-continue-quest" onclick="continueQuest()" style="display:none;width:100%">▶ CONTINUE YOUR QUEST</button>
+      <button class="btn btn-sm" onclick="goBackToMap()" style="width:100%;background:transparent;border-color:#555;color:#888;">← BACK TO MAP</button>
+    </div>
+  `;
+  drawPubIllus(document.getElementById('pub-illus-canvas'),pub);
+  // Re-check ratings
+  checkContinueBtn();
+  currentTab='story';
+  // Scroll to top
+  document.getElementById('screen-pub-experience').scrollTop=0;
+}
+function ratingRow(key,emoji,label,current){
+  const pints=Array.from({length:10},(_,i)=>{
+    const filled=current!==null&&i<current?true:false;
+    const isGold=current!==null&&i===current-1&&current===10;
+    return `<button class="pint-btn${filled?' filled':''}${isGold?' filled-gold':''}" onclick="setRating('${key}',${i+1})">${filled?'🍺':'🫗'}</button>`;
+  }).join('');
+  return `<div class="rating-row"><div class="rating-label">${emoji} ${label}</div><div class="pint-row" id="rating-${key}">${pints}</div></div>`;
+}
+function setRating(key,val){
+  SFX.tick();
+  STATE.ratings[STATE.currentPubId][key]=val;
+  saveState();
+  // Re-render this rating row
+  const pub=PUBS[STATE.currentPubId];
+  const ratings=STATE.ratings[pub.id];
+  document.getElementById('rating-'+key).innerHTML=Array.from({length:10},(_,i)=>{
+    const filled=i<val;
+    const isGold=i===val-1&&val===10;
+    return `<button class="pint-btn${filled?' filled':''}${isGold?' filled-gold':''}" onclick="setRating('${key}',${i+1})">${filled?'🍺':'🫗'}</button>`;
+  }).join('');
+  checkContinueBtn();
+  showSaving();
+}
+function checkContinueBtn(){
+  const r=STATE.ratings[STATE.currentPubId];
+  const done=r&&r.firstDrink!==null&&r.vibe!==null&&r.overall!==null;
+  const btn=document.getElementById('btn-continue-quest');
+  if(btn)btn.style.display=done?'block':'none';
+}
+function showSaving(){
+  const el=document.getElementById('saving-indicator');
+  if(!el)return;
+  el.classList.add('visible');
+  setTimeout(()=>el.classList.remove('visible'),2000);
+}
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('tab-story').classList.toggle('active',tab==='story');
+  document.getElementById('tab-fact').classList.toggle('active',tab==='fact');
+  document.getElementById('tab-story-btn').classList.toggle('active',tab==='story');
+  document.getElementById('tab-fact-btn').classList.toggle('active',tab==='fact');
+}
+let chestOpened=false;
+// reset in initPubExp via chestOpened=false
+function openChest(){
+  if(chestOpened)return;
+  chestOpened=true;
+  SFX.chest();
+  document.getElementById('chest-lid').classList.add('open');
+  document.getElementById('chest-glow').classList.add('visible');
+  document.getElementById('treasure-hint').textContent='✨ REVEALED!';
+  setTimeout(()=>{document.getElementById('fun-fact-text').classList.add('revealed');},600);
+}
+function continueQuest(){
+  const r=STATE.ratings[STATE.currentPubId];
+  if(!r||r.firstDrink===null||r.vibe===null||r.overall===null)return;
+  SFX.pub();
+  if(STATE.visitedPubs.length>=10){
+    STATE.completedAt=new Date().toISOString();
+    saveState();
+    setTimeout(()=>showScreen('completion'),600);
+  } else {
+    STATE.currentPubId=null;
+    saveState();
+    setTimeout(()=>showScreen('world-map'),400);
+  }
+}
+function goBackToMap(){
+  SFX.click();
+  STATE.currentPubId=null;
+  saveState();
+  showScreen('world-map');
+}
+function finishCrawl(){
+  // Only keep pubs that have been fully rated; drop any partial entry
+  STATE.visitedPubs=STATE.visitedPubs.filter(id=>{
+    const r=STATE.ratings[id];
+    return r&&r.firstDrink!==null&&r.vibe!==null&&r.overall!==null;
+  });
+  if(STATE.visitedPubs.length===0)return;
+  STATE.currentPubId=null;
+  STATE.completedAt=new Date().toISOString();
+  saveState();
+  SFX.victory();
+  showScreen('completion');
+}
+
+// ===== COMPLETION SCREEN =====
+let fwRAF=null,fireworks=[];
+function initCompletion(){
+  SFX.victory();
+  renderReport();
+  startFireworks();
+}
+function renderReport(){
+  const visited=STATE.visitedPubs.map(id=>({pub:PUBS[id],r:STATE.ratings[id]}));
+  const avg=r=>((r.firstDrink||0)+(r.vibe||0)+(r.overall||0))/3;
+  const bestDrink=visited.reduce((b,c)=>(c.r.firstDrink||0)>(b.r.firstDrink||0)?c:b);
+  const bestVibe=visited.reduce((b,c)=>(c.r.vibe||0)>(b.r.vibe||0)?c:b);
+  const bestOverall=visited.reduce((b,c)=>(c.r.overall||0)>(b.r.overall||0)?c:b);
+  const champion=visited.reduce((b,c)=>avg(c.r)>avg(b.r)?c:b);
+  const commentaries=[
+    `${STATE.playerName} tackled ${visited.length} pubs with the stamina of a person who has absolutely no idea what tomorrow holds. Legendary.`,
+    `The judges note that ${champion.pub.name} scored highest overall. ${STATE.playerName} insists this was the plan all along. The judges are unconvinced.`,
+    `${visited[visited.length-1].pub.name} was the final frontier. Whether it was a triumph or a mercy is between ${STATE.playerName} and the Liffey.`,
+    `${STATE.playerName} has done what countless visitors dream of. The city is proud. The city is also slightly concerned.`,
+  ];
+  const commentary=commentaries[Math.floor(Math.random()*commentaries.length)];
+  const pubRows=visited.map((v,i)=>`
+    <div class="report-pub-item">
+      <div class="report-pub-num">STOP ${i+1}</div>
+      <div class="report-pub-name">${v.pub.icon} ${v.pub.name}</div>
+      <div class="report-pub-scores">
+        <span class="score-badge">🍺 ${v.r.firstDrink}/10</span>
+        <span class="score-badge">🎭 ${v.r.vibe}/10</span>
+        <span class="score-badge">⭐ ${v.r.overall}/10</span>
+      </div>
+    </div>`).join('');
+  const inner=document.getElementById('completion-inner');
+  inner.innerHTML=`
+    <div class="completion-title">${visited.length>=10?'YOU HAVE CONQUERED<br>THE DUBLIN CRAWL':'THE CRAWL<br>IS COMPLETE'}</div>
+    <div class="completion-sub">${visited.length>=10?'🏆 Quest Complete 🏆':'🍺 '+visited.length+' of 10 Pubs Visited 🍺'}</div>
+    <div class="report-hero">
+      <canvas id="hero-av" width="10" height="16" style="width:48px;height:77px;image-rendering:pixelated;flex-shrink:0;"></canvas>
+      <div><div class="report-hero-name">${STATE.playerName.toUpperCase()}</div>
+      <div style="font-family:var(--fn-b);font-size:18px;color:var(--cream-dark);margin-top:4px;">${visited.length} pub${visited.length!==1?'s':''} conquered</div>
+      <div style="font-family:var(--fn-b);font-size:16px;color:var(--amber);">Dublin Pub Crawl Veteran</div></div>
+    </div>
+    <div class="report-pub-list" style="width:100%">${pubRows}</div>
+    <div class="report-crowns">
+      <div class="crown-card"><div class="crown-emoji">🍺</div><div class="crown-label">BEST FIRST DRINK</div><div class="crown-pub">${bestDrink.pub.name}</div><div class="crown-score">${bestDrink.r.firstDrink}/10</div></div>
+      <div class="crown-card"><div class="crown-emoji">🎭</div><div class="crown-label">BEST VIBE</div><div class="crown-pub">${bestVibe.pub.name}</div><div class="crown-score">${bestVibe.r.vibe}/10</div></div>
+      <div class="crown-card"><div class="crown-emoji">⭐</div><div class="crown-label">BEST OVERALL</div><div class="crown-pub">${bestOverall.pub.name}</div><div class="crown-score">${bestOverall.r.overall}/10</div></div>
+      <div class="crown-card champion"><div class="crown-emoji">👑</div><div class="crown-label">YOUR PUB OF THE NIGHT</div><div class="crown-pub">${champion.pub.name}</div><div class="crown-score">Avg ${avg(champion.r).toFixed(1)}/10</div></div>
+    </div>
+    <div class="commentary-box">"${commentary}"</div>
+    <button class="btn btn-amber report-restart" onclick="startFresh()">⚑ START A NEW CRAWL</button>
+  `;
+  if(STATE.avatarId!==null){drawSprite(document.getElementById('hero-av'),STATE.avatarId,5);}
+}
+class FWParticle{
+  constructor(x,y,vx,vy,color){this.x=x;this.y=y;this.vx=vx;this.vy=vy;this.color=color;this.alpha=1;this.size=Math.random()<0.5?2:3;}
+  update(){this.x+=this.vx;this.y+=this.vy;this.vy+=0.15;this.vx*=0.98;this.alpha-=0.018;}
+}
+class FWRocket{
+  constructor(W){this.x=(0.2+Math.random()*0.6)*W;this.y=window.innerHeight;this.vy=-(10+Math.random()*6);this.exploded=false;this.particles=[];}
+  update(W,H){
+    if(!this.exploded){
+      this.y+=this.vy;this.vy+=0.4;
+      if(this.vy>=-1.5){this.explode();}
+    } else {
+      this.particles.forEach(p=>p.update());
+      this.particles=this.particles.filter(p=>p.alpha>0.05);
+    }
+  }
+  explode(){
+    this.exploded=true;
+    const colors=['#f4a261','#ffd700','#2d6a4f','#faf0e6','#e76f51','#ffffff','#c8a000'];
+    for(let i=0;i<36;i++){
+      const a=(i/36)*Math.PI*2;const spd=2+Math.random()*4;
+      this.particles.push(new FWParticle(this.x,this.y,Math.cos(a)*spd,Math.sin(a)*spd,colors[Math.floor(Math.random()*colors.length)]));
+    }
+    try{
+      const ctx=getAudio();const t=ctx.currentTime;
+      const freqs=[784,988,1175];freqs.forEach((f,i)=>{tone(f,'square',0.08,0.2,i*0.06);});
+    }catch(e){}
+  }
+  draw(ctx){
+    if(!this.exploded){ctx.fillStyle='#ffd700';ctx.fillRect(this.x-1,this.y-2,2,5);}
+    else{this.particles.forEach(p=>{ctx.globalAlpha=p.alpha;ctx.fillStyle=p.color;ctx.fillRect(p.x-p.size/2,p.y-p.size/2,p.size,p.size);});}
+  }
+  done(){return this.exploded&&this.particles.length===0;}
+}
+function startFireworks(){
+  const canvas=document.getElementById('fireworks-canvas');
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  const ctx=canvas.getContext('2d');
+  let launchCount=0;
+  const maxLaunches=14;
+  function launchRocket(){
+    if(launchCount<maxLaunches){fireworks.push(new FWRocket(canvas.width));launchCount++;}
+    const delay=launchCount<8?700+Math.random()*400:1800+Math.random()*1200;
+    if(launchCount<maxLaunches)setTimeout(launchRocket,delay);
+  }
+  launchRocket();setTimeout(launchRocket,300);setTimeout(launchRocket,600);
+  function loop(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.globalAlpha=1;
+    fireworks.forEach(fw=>fw.update(canvas.width,canvas.height));
+    fireworks=fireworks.filter(fw=>!fw.done());
+    fireworks.forEach(fw=>fw.draw(ctx));
+    ctx.globalAlpha=1;
+    fwRAF=requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+// ===== WINDOW RESIZE: redraw map path =====
+window.addEventListener('resize',()=>{
+  if(currentScreen==='world-map'){renderMapPath();positionAvatarOnMap(false);}
+});
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded',async()=>{
+  try{await document.fonts.ready;}catch(e){}
+  const hasSave=loadState();
+  if(hasSave&&STATE.phase&&STATE.phase!=='welcome'&&STATE.playerName){
+    showScreen(STATE.phase);
+  } else {
+    showScreen('welcome');
+  }
+});
+</script>
+</body>
+</html>
